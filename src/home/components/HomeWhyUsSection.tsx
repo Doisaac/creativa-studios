@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { benefits } from '@/home/pages/mocks/home.mock'
+import { benefits } from '@/home/mocks/home.mock'
 
 export const HomeWhyUsSection = () => {
   return (

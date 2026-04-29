@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight } from 'lucide-react'
-import { portfolio } from '@/home/pages/mocks/home.mock'
+import { portfolio } from '@/home/mocks/home.mock'
 
 export const HomePortfolioSection = () => {
   return (

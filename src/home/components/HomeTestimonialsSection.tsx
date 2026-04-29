@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Star } from 'lucide-react'
-import { testimonials } from '@/home/pages/mocks/home.mock'
+import { testimonials } from '@/home/mocks/home.mock'
 
 export const HomeTestimonialsSection = () => {
   return (

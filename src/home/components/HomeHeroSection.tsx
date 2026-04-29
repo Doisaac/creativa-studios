@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { partners } from '@/home/pages/mocks/home.mock'
+import { partners } from '@/home/mocks/home.mock'
 import heroImg from '@/assets/hero-mockups.jpg'
 
 export const HomeHeroSection = () => {

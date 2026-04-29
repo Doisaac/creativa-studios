@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { services } from '@/home/pages/mocks/home.mock'
+import { services } from '@/home/mocks/home.mock'
 
 export const HomeServicesSection = () => {
   return (
