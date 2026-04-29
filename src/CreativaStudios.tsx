@@ -1,7 +1,10 @@
+import { RouterProvider } from 'react-router'
+import { appRouter } from '@/app.router'
+
 export const CreativaStudios = () => {
   return (
     <>
-      <h1>Creativa Studios</h1>
+      <RouterProvider router={appRouter} />
     </>
   )
 }
