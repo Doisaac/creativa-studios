@@ -7,16 +7,45 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import { useAuthStore } from '../store/authStore'
+import { toast } from 'sonner'
 
 export const LoginPage = () => {
   const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useAuthStore()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => navigate('/admin'), 700)
+
+    const formData = new FormData(e.target as HTMLFormElement)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    try {
+      const isLoginCorrect = await login(email, password)
+
+      if (!isLoginCorrect) {
+        toast.error('Error al iniciar sesión', {
+          description: 'Por favor, verifica tus credenciales.',
+          duration: 3000,
+        })
+        setLoading(false)
+        return
+      }
+
+      // El usuario se ha autenticado correctamente
+      toast.success('¡Bienvenido de nuevo!', {
+        description: 'Has iniciado sesión exitosamente.',
+        duration: 3000,
+      })
+      setTimeout(() => navigate('/admin'), 700)
+    } catch {
+      console.log('error')
+    }
   }
 
   return (
@@ -97,6 +126,7 @@ export const LoginPage = () => {
                   <Label htmlFor="email">Correo</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="empleado@creativastudios.sv"
                     defaultValue="admin@creativastudios.sv"
@@ -116,6 +146,7 @@ export const LoginPage = () => {
                   <div className="relative">
                     <Input
                       id="password"
+                      name="password"
                       type={show ? 'text' : 'password'}
                       placeholder="••••••••"
                       defaultValue="demo1234"
