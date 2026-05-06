@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { User } from '../types/login.response'
-import { loginAction } from '../actions/loginAction'
+import { loginAction } from '../actions/login.action'
 
 interface AuthState {
   // Properties
