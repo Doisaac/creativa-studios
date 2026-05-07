@@ -42,6 +42,7 @@ import { AdminTopBar } from '../components/AdminTopBar'
 import { useDeleteInventario } from '../hooks/useDeleteInventario'
 import { useInventario } from '../hooks/useInventario'
 import { useInventarioById } from '../hooks/useInventarioById'
+import { useInventarioSummary } from '../hooks/useInventarioSummary'
 import { useUpdateInventario } from '../hooks/useUpdateInventario'
 import type {
   InventarioItem,
@@ -159,6 +160,7 @@ export const InventarioPage = () => {
 
   const { data, error, isError, isFetching, isLoading, refetch } =
     useInventario({ page })
+  const { data: summary, isLoading: isSummaryLoading } = useInventarioSummary()
   const {
     data: selectedItem,
     error: detailError,
@@ -179,15 +181,6 @@ export const InventarioPage = () => {
   )
   const selectedFormValues =
     formValues ?? getInitialFormState(selectedItem ?? null)
-
-  const summary = {
-    total: pagination?.total ?? items.length,
-    inStock: items.filter((item) => getStockStatus(item) === 'En stock').length,
-    lowStock: items.filter((item) => getStockStatus(item) === 'Bajo stock')
-      .length,
-    outOfStock: items.filter((item) => getStockStatus(item) === 'Agotado')
-      .length,
-  }
 
   const handleCloseSheet = (open: boolean) => {
     if (open) return
@@ -296,25 +289,25 @@ export const InventarioPage = () => {
           {[
             {
               label: 'Total productos',
-              value: summary.total.toString(),
+              value: summary?.totalProducts.toString() ?? '--',
               icon: Boxes,
               tint: 'bg-info/10 text-info',
             },
             {
-              label: 'En stock',
-              value: summary.inStock.toString(),
+              label: 'Stock total',
+              value: summary?.totalStock.toString() ?? '--',
               icon: Boxes,
               tint: 'bg-success/10 text-success',
             },
             {
               label: 'Bajo stock',
-              value: summary.lowStock.toString(),
+              value: summary?.lowStock.toString() ?? '--',
               icon: AlertTriangle,
               tint: 'bg-warning/15 text-warning-foreground',
             },
             {
               label: 'Agotados',
-              value: summary.outOfStock.toString(),
+              value: summary?.outOfStock.toString() ?? '--',
               icon: AlertTriangle,
               tint: 'bg-destructive/10 text-destructive',
             },
@@ -329,9 +322,13 @@ export const InventarioPage = () => {
                 <item.icon className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-2xl font-semibold tracking-tight">
-                  {item.value}
-                </p>
+                <div className="text-2xl font-semibold tracking-tight">
+                  {isSummaryLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    item.value
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">{item.label}</p>
               </div>
             </Card>
