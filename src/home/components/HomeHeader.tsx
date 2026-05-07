@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Logo } from '@/components/custom/CustomLogo'
 import { Button } from '@/components/ui/button'
 import { Menu, X } from 'lucide-react'
+import { useAuthStore } from '@/auth/store/authStore'
 
 const sections = [
   { href: '#inicio', label: 'Inicio' },
@@ -15,6 +16,9 @@ const sections = [
 export const HomeHeader = () => {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+
+  const { status, logout } = useAuthStore()
+  console.log({ status })
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -47,9 +51,22 @@ export const HomeHeader = () => {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">Login</Link>
-          </Button>
+          {status === 'not-authenticated' && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/login">Login</Link>
+            </Button>
+          )}
+          {status === 'authenticated' && (
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/admin">Dashboard</Link>
+              </Button>
+
+              <Button variant="default" size="sm" onClick={logout}>
+                Cerrar Sesión
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -74,11 +91,24 @@ export const HomeHeader = () => {
                 {s.label}
               </a>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link to="/login">Login</Link>
-              </Button>
-            </div>
+            {status === 'not-authenticated' && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/login">Login</Link>
+                </Button>
+              </div>
+            )}
+            {status === 'authenticated' && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/admin">Dashboard</Link>
+                </Button>
+
+                <Button variant="default" size="sm" onClick={logout}>
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
           </nav>
         </div>
       )}

@@ -10,6 +10,7 @@ import { InventarioPage } from './admin/pages/InventarioPage'
 import { PedidosPage } from './admin/pages/PedidosPage'
 import { ClientesPage } from './admin/pages/ClientesPage'
 import { CostosPage } from './admin/pages/CostosPage'
+import { AuthenticatedRoutes } from './components/routes/ProtectedRoutes'
 
 export const appRouter = createBrowserRouter([
   {
@@ -22,9 +23,14 @@ export const appRouter = createBrowserRouter([
     element: <AuthLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
+  // Authenticated routes
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <AuthenticatedRoutes>
+        <AdminLayout />
+      </AuthenticatedRoutes>
+    ),
     children: [
       { index: true, element: <DashboardPage /> },
       {

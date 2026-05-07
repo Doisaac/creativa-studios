@@ -128,8 +128,7 @@ export const LoginPage = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="empleado@creativastudios.sv"
-                    defaultValue="admin@creativastudios.sv"
+                    placeholder="kenny@creativastudios.com"
                     required
                   />
                 </div>
@@ -149,7 +148,6 @@ export const LoginPage = () => {
                       name="password"
                       type={show ? 'text' : 'password'}
                       placeholder="••••••••"
-                      defaultValue="demo1234"
                       required
                     />
                     <button
