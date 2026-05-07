@@ -41,12 +41,14 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { AdminTopBar } from '../components/AdminTopBar'
+import { useCreateInventario } from '../hooks/useCreateInventario'
 import { useDeleteInventario } from '../hooks/useDeleteInventario'
 import { useInventario } from '../hooks/useInventario'
 import { useInventarioById } from '../hooks/useInventarioById'
 import { useInventarioSummary } from '../hooks/useInventarioSummary'
 import { useUpdateInventario } from '../hooks/useUpdateInventario'
 import type {
+  CreateInventarioPayload,
   InventarioItem,
   UpdateInventarioPayload,
 } from '../types/inventario'
@@ -153,10 +155,17 @@ const validateInventarioForm = (values: UpdateInventarioPayload) => {
   return errors
 }
 
+const getInitialCreateFormState = (): CreateInventarioPayload => ({
+  nombre: '',
+  stock_minimo: 0,
+  unidad_de_medida: '',
+})
+
 export const InventarioPage = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<InventoryPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -166,6 +175,10 @@ export const InventarioPage = () => {
     null,
   )
   const [formErrors, setFormErrors] = useState<InventarioFormErrors>({})
+  const [createFormValues, setCreateFormValues] =
+    useState<CreateInventarioPayload>(getInitialCreateFormState)
+  const [createFormErrors, setCreateFormErrors] =
+    useState<InventarioFormErrors>({})
 
   const { data: summary, isLoading: isSummaryLoading } = useInventarioSummary()
   const effectiveLimit =
@@ -178,6 +191,7 @@ export const InventarioPage = () => {
     isError: isDetailError,
     isLoading: isDetailLoading,
   } = useInventarioById({ id: selectedId })
+  const createInventario = useCreateInventario()
   const updateInventario = useUpdateInventario()
   const deleteInventario = useDeleteInventario()
 
@@ -280,6 +294,15 @@ export const InventarioPage = () => {
     setFormErrors({})
   }
 
+  const handleCloseCreateSheet = (open: boolean) => {
+    setIsCreateSheetOpen(open)
+
+    if (open) return
+
+    setCreateFormValues(getInitialCreateFormState())
+    setCreateFormErrors({})
+  }
+
   const handleInputChange =
     (field: keyof UpdateInventarioPayload) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,6 +317,25 @@ export const InventarioPage = () => {
       }))
 
       setFormErrors((current) => ({
+        ...current,
+        [field]: undefined,
+      }))
+    }
+
+  const handleCreateInputChange =
+    (field: keyof CreateInventarioPayload) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value =
+        field === 'stock_minimo'
+          ? Number(event.target.value)
+          : event.target.value
+
+      setCreateFormValues((current) => ({
+        ...current,
+        [field]: value,
+      }))
+
+      setCreateFormErrors((current) => ({
         ...current,
         [field]: undefined,
       }))
@@ -339,6 +381,44 @@ export const InventarioPage = () => {
     }
   }
 
+  const handleCreateSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault()
+
+    const validationErrors = validateInventarioForm(createFormValues)
+
+    if (Object.keys(validationErrors).length > 0) {
+      setCreateFormErrors(validationErrors)
+      return
+    }
+
+    try {
+      await createInventario.mutateAsync({
+        nombre: createFormValues.nombre.trim(),
+        stock_minimo: createFormValues.stock_minimo,
+        unidad_de_medida: createFormValues.unidad_de_medida.trim(),
+      })
+
+      setIsCreateSheetOpen(false)
+      setCreateFormValues(getInitialCreateFormState())
+      setCreateFormErrors({})
+
+      toast.success('Producto creado', {
+        description: 'El producto se agrego correctamente al inventario.',
+        duration: 3000,
+      })
+    } catch (mutationError) {
+      toast.error('No se pudo crear el producto', {
+        description: getApiErrorMessage(
+          mutationError,
+          'Revisa los datos e intenta de nuevo.',
+        ),
+        duration: 4000,
+      })
+    }
+  }
+
   const handleDelete = async () => {
     if (!selectedId || !selectedItem) return
 
@@ -370,7 +450,10 @@ export const InventarioPage = () => {
       <AdminTopBar
         title="Inventario"
         breadcrumbs={[{ label: 'Inventario' }]}
-        primaryAction={{ label: 'Nuevo producto' }}
+        primaryAction={{
+          label: 'Nuevo producto',
+          onClick: () => setIsCreateSheetOpen(true),
+        }}
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -693,6 +776,119 @@ export const InventarioPage = () => {
           ) : null}
         </Card>
       </div>
+
+      <Sheet open={isCreateSheetOpen} onOpenChange={handleCloseCreateSheet}>
+        <SheetContent className="overflow-y-auto overflow-x-hidden">
+          <SheetHeader className="border-b border-border pb-5">
+            <SheetTitle className="text-xl">Nuevo producto</SheetTitle>
+            <SheetDescription>
+              Agrega un nuevo material al inventario con su stock minimo y
+              unidad de medida.
+            </SheetDescription>
+          </SheetHeader>
+
+          <form
+            onSubmit={handleCreateSubmit}
+            className="space-y-5 px-5 py-6 sm:px-6"
+          >
+            <Card className="gap-4 border-border bg-card p-4">
+              <div>
+                <h4 className="text-sm font-semibold">
+                  Informacion del producto
+                </h4>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Completa los datos requeridos para registrar el producto.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="nuevo-inventario-nombre">Nombre</Label>
+                <Input
+                  id="nuevo-inventario-nombre"
+                  value={createFormValues.nombre}
+                  onChange={handleCreateInputChange('nombre')}
+                  aria-invalid={!!createFormErrors.nombre}
+                  disabled={createInventario.isPending}
+                />
+                {createFormErrors.nombre ? (
+                  <p className="text-xs text-destructive">
+                    {createFormErrors.nombre}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="nuevo-inventario-stock-minimo">
+                  Stock minimo
+                </Label>
+                <Input
+                  id="nuevo-inventario-stock-minimo"
+                  type="number"
+                  min={0}
+                  value={createFormValues.stock_minimo}
+                  onChange={handleCreateInputChange('stock_minimo')}
+                  aria-invalid={!!createFormErrors.stock_minimo}
+                  disabled={createInventario.isPending}
+                />
+                {createFormErrors.stock_minimo ? (
+                  <p className="text-xs text-destructive">
+                    {createFormErrors.stock_minimo}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="nuevo-inventario-unidad">
+                  Unidad de medida
+                </Label>
+                <Input
+                  id="nuevo-inventario-unidad"
+                  value={createFormValues.unidad_de_medida}
+                  onChange={handleCreateInputChange('unidad_de_medida')}
+                  aria-invalid={!!createFormErrors.unidad_de_medida}
+                  disabled={createInventario.isPending}
+                />
+                {createFormErrors.unidad_de_medida ? (
+                  <p className="text-xs text-destructive">
+                    {createFormErrors.unidad_de_medida}
+                  </p>
+                ) : null}
+              </div>
+            </Card>
+
+            <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCreateFormValues(getInitialCreateFormState())
+                    setCreateFormErrors({})
+                  }}
+                  disabled={createInventario.isPending}
+                >
+                  Restablecer
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={createInventario.isPending}
+                >
+                  {createInventario.isPending ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                      Guardando...
+                    </>
+                  ) : (
+                    'Crear producto'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={selectedId !== null} onOpenChange={handleCloseSheet}>
         <SheetContent className="overflow-y-auto overflow-x-hidden">

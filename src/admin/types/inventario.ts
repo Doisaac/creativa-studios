@@ -26,6 +26,12 @@ export interface UpdateInventarioPayload {
   unidad_de_medida: string
 }
 
+export interface CreateInventarioPayload {
+  nombre: string
+  stock_minimo: number
+  unidad_de_medida: string
+}
+
 export interface InventarioResponse {
   success: boolean
   message: string
