@@ -51,6 +51,7 @@ import type {
 
 type Stock = 'En stock' | 'Bajo stock' | 'Agotado'
 type InventoryStatusFilter = 'Todos' | Stock
+type InventoryPageSize = 10 | 20 | 30 | 'all'
 
 interface InventarioFormErrors {
   nombre?: string
@@ -152,6 +153,7 @@ const validateInventarioForm = (values: UpdateInventarioPayload) => {
 
 export const InventarioPage = () => {
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<InventoryPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -162,9 +164,11 @@ export const InventarioPage = () => {
   )
   const [formErrors, setFormErrors] = useState<InventarioFormErrors>({})
 
-  const { data, error, isError, isFetching, isLoading, refetch } =
-    useInventario({ page })
   const { data: summary, isLoading: isSummaryLoading } = useInventarioSummary()
+  const effectiveLimit =
+    pageSize === 'all' ? (summary?.totalProducts ?? 10) : pageSize
+  const { data, error, isError, isFetching, isLoading, refetch } =
+    useInventario({ page, limit: effectiveLimit })
   const {
     data: selectedItem,
     error: detailError,
@@ -541,6 +545,23 @@ export const InventarioPage = () => {
               </span>
 
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <div className="flex flex-wrap items-center gap-1">
+                  <span>Mostrar</span>
+                  {[10, 20, 30, 'all'].map((size) => (
+                    <Button
+                      key={size}
+                      variant={pageSize === size ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setPage(1)
+                        setPageSize(size as InventoryPageSize)
+                      }}
+                      disabled={isFetching}
+                    >
+                      {size === 'all' ? 'Todos' : size}
+                    </Button>
+                  ))}
+                </div>
                 <span>{filteredItems.length} visibles en esta pagina</span>
                 <span>{pagination.total} registros en total</span>
 

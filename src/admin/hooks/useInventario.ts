@@ -4,12 +4,13 @@ import { getInventarioService } from '../services/get-inventario.service'
 
 interface UseInventarioParams {
   page: number
+  limit: number
 }
 
-export const useInventario = ({ page }: UseInventarioParams) => {
+export const useInventario = ({ page, limit }: UseInventarioParams) => {
   return useQuery({
-    queryKey: inventarioQueryKeys.list(page),
-    queryFn: () => getInventarioService({ page }),
+    queryKey: inventarioQueryKeys.list(page, limit),
+    queryFn: () => getInventarioService({ page, limit }),
     placeholderData: (previousData) => previousData,
     staleTime: 1000 * 60 * 5,
   })
