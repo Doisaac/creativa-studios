@@ -50,6 +50,7 @@ import type {
 } from '../types/inventario'
 
 type Stock = 'En stock' | 'Bajo stock' | 'Agotado'
+type InventoryStatusFilter = 'Todos' | Stock
 
 interface InventarioFormErrors {
   nombre?: string
@@ -153,6 +154,9 @@ export const InventarioPage = () => {
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] =
+    useState<InventoryStatusFilter>('Todos')
   const [formValues, setFormValues] = useState<UpdateInventarioPayload | null>(
     null,
   )
@@ -181,6 +185,18 @@ export const InventarioPage = () => {
   )
   const selectedFormValues =
     formValues ?? getInitialFormState(selectedItem ?? null)
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase()
+  const filteredItems = items.filter((item) => {
+    const matchesName =
+      normalizedSearchTerm.length === 0 ||
+      item.nombre.toLowerCase().includes(normalizedSearchTerm)
+    const status = getStockStatus(item)
+    const matchesStatus = statusFilter === 'Todos' || status === statusFilter
+
+    return matchesName && matchesStatus
+  })
+  const hasActiveFilters =
+    normalizedSearchTerm.length > 0 || statusFilter !== 'Todos'
 
   const handleCloseSheet = (open: boolean) => {
     if (open) return
@@ -336,19 +352,50 @@ export const InventarioPage = () => {
         </div>
 
         <Card className="gap-0 overflow-hidden border-border bg-card p-0 shadow-soft">
-          <div className="flex items-center justify-between border-b border-border p-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar producto..."
-                className="h-8 w-80 bg-muted pl-8 text-xs"
-                disabled
-              />
+          <div className="flex flex-col gap-3 border-b border-border p-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Buscar producto por nombre..."
+                  className="h-8 bg-muted pl-8 text-xs"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                  <Filter className="h-3.5 w-3.5" /> Estado
+                </span>
+                {(['Todos', 'En stock', 'Bajo stock', 'Agotado'] as const).map(
+                  (status) => (
+                    <Button
+                      key={status}
+                      variant={statusFilter === status ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setStatusFilter(status)}
+                    >
+                      {status}
+                    </Button>
+                  ),
+                )}
+                {hasActiveFilters ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setStatusFilter('Todos')
+                    }}
+                  >
+                    Limpiar filtros
+                  </Button>
+                ) : null}
+              </div>
             </div>
+
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="h-3.5 w-3.5" /> Filtros
-              </Button>
               <Button variant="outline" size="sm">
                 <Download className="h-3.5 w-3.5" /> Exportar
               </Button>
@@ -382,6 +429,29 @@ export const InventarioPage = () => {
                   Cuando existan productos, aparecerán listados aquí.
                 </p>
               </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-6 text-center">
+                <Filter className="h-8 w-8 text-muted-foreground" />
+                <p className="font-medium">
+                  No hay resultados para esos filtros
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Ajusta la busqueda o el estado para ver productos en esta
+                  pagina.
+                </p>
+                {hasActiveFilters ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setStatusFilter('Todos')
+                    }}
+                  >
+                    Limpiar filtros
+                  </Button>
+                ) : null}
+              </div>
             ) : (
               <div className="relative">
                 {isFetching ? (
@@ -402,7 +472,7 @@ export const InventarioPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {items.map((item) => {
+                    {filteredItems.map((item) => {
                       const status = getStockStatus(item)
                       const progress = Math.min(
                         100,
@@ -471,6 +541,7 @@ export const InventarioPage = () => {
               </span>
 
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <span>{filteredItems.length} visibles en esta pagina</span>
                 <span>{pagination.total} registros en total</span>
 
                 {hasPagination ? (
