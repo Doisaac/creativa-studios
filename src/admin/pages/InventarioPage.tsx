@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import {
   AlertTriangle,
   Boxes,
@@ -156,6 +158,7 @@ export const InventarioPage = () => {
   const [pageSize, setPageSize] = useState<InventoryPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] =
     useState<InventoryStatusFilter>('Todos')
@@ -201,6 +204,72 @@ export const InventarioPage = () => {
   })
   const hasActiveFilters =
     normalizedSearchTerm.length > 0 || statusFilter !== 'Todos'
+
+  const handleExportPdf = async () => {
+    if (filteredItems.length === 0 || isExporting) {
+      return
+    }
+
+    try {
+      setIsExporting(true)
+
+      const document = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      })
+      const exportedAt = new Date().toLocaleString('es-SV', {
+        timeZone: EL_SALVADOR_TIME_ZONE,
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        hour12: true,
+      })
+
+      document.setFontSize(16)
+      document.text('Inventario', 14, 16)
+      document.setFontSize(10)
+      document.text(`Exportado: ${exportedAt}`, 14, 22)
+      document.text(`Registros visibles: ${filteredItems.length}`, 14, 27)
+
+      autoTable(document, {
+        startY: 32,
+        head: [['Producto', 'Stock', 'Minimo', 'Estado', 'Unidad', 'Creado']],
+        body: filteredItems.map((item) => [
+          item.nombre,
+          `${item.stock_actual} ${item.unidad_de_medida}`,
+          item.stock_minimo.toString(),
+          getStockStatus(item),
+          item.unidad_de_medida,
+          formatInventoryDate(item.created_at),
+        ]),
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        margin: { left: 14, right: 14, bottom: 14 },
+      })
+
+      const fileDate = new Date().toISOString().slice(0, 10)
+      document.save(`inventario-${fileDate}.pdf`)
+    } catch (exportError) {
+      toast.error('No se pudo exportar el PDF', {
+        description: getApiErrorMessage(
+          exportError,
+          'Intenta nuevamente dentro de unos segundos.',
+        ),
+        duration: 4000,
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const handleCloseSheet = (open: boolean) => {
     if (open) return
@@ -400,8 +469,24 @@ export const InventarioPage = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="h-3.5 w-3.5" /> Exportar
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleExportPdf()}
+                disabled={
+                  filteredItems.length === 0 || isExporting || isLoading
+                }
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                    Exportando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-3.5 w-3.5" /> Exportar
+                  </>
+                )}
               </Button>
             </div>
           </div>
