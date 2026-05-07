@@ -15,6 +15,12 @@ export interface InventarioPagination {
   totalPages: number
 }
 
+export interface UpdateInventarioPayload {
+  nombre: string
+  stock_minimo: number
+  unidad_de_medida: string
+}
+
 export interface InventarioResponse {
   success: boolean
   message: string
@@ -22,4 +28,21 @@ export interface InventarioResponse {
     items: InventarioItem[]
     pagination: InventarioPagination
   }
+}
+
+export interface InventarioByIdResponse {
+  success: boolean
+  message: string
+  data: InventarioItem
+}
+
+export interface InventarioMutationResponse {
+  success: boolean
+  message: string
+  data: InventarioItem
+}
+
+export interface DeleteInventarioResponse {
+  success: boolean
+  message: string
 }
