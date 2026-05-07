@@ -1,29 +1,35 @@
 import { useState } from 'react'
-import { AdminTopBar } from '../components/AdminTopBar'
-import { Card } from '@/components/ui/card'
+import {
+  AlertTriangle,
+  Boxes,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Edit3,
+  Filter,
+  Search,
+  Trash,
+} from 'lucide-react'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
-import {
-  Search,
-  Filter,
-  Download,
-  Boxes,
-  AlertTriangle,
-  MapPin,
-  Truck,
-  Edit3,
-  Trash,
-} from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { AdminTopBar } from '../components/AdminTopBar'
+import { useInventario } from '../hooks/useInventario'
+import type { InventarioItem } from '../types/inventario'
 
 type Stock = 'En stock' | 'Bajo stock' | 'Agotado'
+
 const stockColor: Record<Stock, string> = {
   'En stock': 'bg-success/10 text-success border border-success/20',
   'Bajo stock':
@@ -31,81 +37,57 @@ const stockColor: Record<Stock, string> = {
   Agotado: 'bg-destructive/10 text-destructive border border-destructive/20',
 }
 
-const items = [
-  {
-    sku: 'VIN-122-WHT',
-    name: 'Vinil corte blanco 1.22m',
-    stock: 8,
-    min: 25,
-    location: 'Bodega A · Estante 3',
-    supplier: 'Sintex SA',
-    status: 'Bajo stock' as Stock,
-    unit: 'metros',
-  },
-  {
-    sku: 'TIN-SUB-CYN',
-    name: 'Tinta sublimación cyan',
-    stock: 1,
-    min: 4,
-    location: 'Bodega B · Cajón 1',
-    supplier: 'PrintPro',
-    status: 'Agotado' as Stock,
-    unit: 'cartuchos',
-  },
-  {
-    sku: 'PAP-COU-300',
-    name: 'Papel couché 300g A3',
-    stock: 240,
-    min: 100,
-    location: 'Bodega A · Estante 1',
-    supplier: 'PaperCo',
-    status: 'En stock' as Stock,
-    unit: 'hojas',
-  },
-  {
-    sku: 'LON-BAN-13',
-    name: 'Lona banner 13oz',
-    stock: 14,
-    min: 20,
-    location: 'Bodega A · Estante 5',
-    supplier: 'Sintex SA',
-    status: 'Bajo stock' as Stock,
-    unit: 'metros',
-  },
-  {
-    sku: 'TAZ-SUB-11',
-    name: 'Tazas sublimables 11oz',
-    stock: 86,
-    min: 30,
-    location: 'Bodega C · Estante 2',
-    supplier: 'MugMaster',
-    status: 'En stock' as Stock,
-    unit: 'unidades',
-  },
-  {
-    sku: 'CAM-DT-100',
-    name: 'Camisas algodón DTF',
-    stock: 142,
-    min: 50,
-    location: 'Bodega C · Estante 4',
-    supplier: 'Textil Norte',
-    status: 'En stock' as Stock,
-    unit: 'unidades',
-  },
-  {
-    sku: 'VIN-LAM-MA',
-    name: 'Vinil laminado mate',
-    stock: 32,
-    min: 20,
-    location: 'Bodega A · Estante 3',
-    supplier: 'Sintex SA',
-    status: 'En stock' as Stock,
-    unit: 'metros',
-  },
-]
+const getStockStatus = (item: InventarioItem): Stock => {
+  if (item.stock_actual <= 0) return 'Agotado'
+  if (item.bajo_stock) return 'Bajo stock'
+
+  return 'En stock'
+}
+
+const formatInventoryDate = (date: string) =>
+  new Intl.DateTimeFormat('es-SV', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(date))
+
+const InventoryTableSkeleton = () => (
+  <div className="space-y-3 p-5">
+    {Array.from({ length: 5 }).map((_, index) => (
+      <div key={index} className="grid grid-cols-5 gap-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    ))}
+  </div>
+)
 
 export const InventarioPage = () => {
-  const [selected, setSelected] = useState<(typeof items)[number] | null>(null)
+  const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<InventarioItem | null>(null)
+  const { data, error, isError, isFetching, isLoading, refetch } =
+    useInventario({ page })
+
+  const items = data?.items ?? []
+  const pagination = data?.pagination
+  const totalPages = pagination?.totalPages ?? 1
+  const currentPage = pagination?.page ?? page
+  const hasPagination = totalPages > 1
+  const pageNumbers = Array.from(
+    { length: totalPages },
+    (_, index) => index + 1,
+  )
+
+  const summary = {
+    total: pagination?.total ?? items.length,
+    inStock: items.filter((item) => getStockStatus(item) === 'En stock').length,
+    lowStock: items.filter((item) => getStockStatus(item) === 'Bajo stock')
+      .length,
+    outOfStock: items.filter((item) => getStockStatus(item) === 'Agotado')
+      .length,
+  }
 
   return (
     <>
@@ -116,54 +98,47 @@ export const InventarioPage = () => {
       />
 
       <div className="space-y-5 p-4 sm:p-6">
-        {/* Summary cards */}
         <div className="grid gap-3 sm:grid-cols-4">
           {[
             {
               label: 'Total productos',
-              value: items.length.toString(),
+              value: summary.total.toString(),
               icon: Boxes,
               tint: 'bg-info/10 text-info',
             },
             {
               label: 'En stock',
-              value: items
-                .filter((i) => i.status === 'En stock')
-                .length.toString(),
+              value: summary.inStock.toString(),
               icon: Boxes,
               tint: 'bg-success/10 text-success',
             },
             {
               label: 'Bajo stock',
-              value: items
-                .filter((i) => i.status === 'Bajo stock')
-                .length.toString(),
+              value: summary.lowStock.toString(),
               icon: AlertTriangle,
               tint: 'bg-warning/15 text-warning-foreground',
             },
             {
               label: 'Agotados',
-              value: items
-                .filter((i) => i.status === 'Agotado')
-                .length.toString(),
+              value: summary.outOfStock.toString(),
               icon: AlertTriangle,
               tint: 'bg-destructive/10 text-destructive',
             },
-          ].map((s) => (
+          ].map((item) => (
             <Card
-              key={s.label}
+              key={item.label}
               className="flex-row items-center gap-4 border-border bg-card p-4 shadow-soft"
             >
               <span
-                className={`grid h-10 w-10 place-items-center rounded-lg ${s.tint}`}
+                className={`grid h-10 w-10 place-items-center rounded-lg ${item.tint}`}
               >
-                <s.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4" />
               </span>
               <div>
                 <p className="text-2xl font-semibold tracking-tight">
-                  {s.value}
+                  {item.value}
                 </p>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
               </div>
             </Card>
           ))}
@@ -174,8 +149,9 @@ export const InventarioPage = () => {
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar SKU, producto o proveedor…"
+                placeholder="Buscar producto..."
                 className="h-8 w-80 bg-muted pl-8 text-xs"
+                disabled
               />
             </div>
             <div className="flex gap-2">
@@ -187,90 +163,184 @@ export const InventarioPage = () => {
               </Button>
             </div>
           </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border bg-muted/40 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 text-left">Producto</th>
-                  <th className="px-5 py-3 text-left">Stock</th>
-                  <th className="px-5 py-3 text-left">Mínimo</th>
-                  <th className="px-5 py-3 text-left">Estado</th>
-                  <th className="px-5 py-3 text-left">Ubicación</th>
-                  <th className="px-5 py-3 text-left">Proveedor</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {items.map((i) => {
-                  const pct = Math.min(
-                    100,
-                    (i.stock / Math.max(i.min * 2, 1)) * 100,
-                  )
-                  return (
-                    <tr
-                      key={i.sku}
-                      onClick={() => setSelected(i)}
-                      className="cursor-pointer transition hover:bg-muted/40"
-                    >
-                      <td className="px-5 py-3.5">
-                        <p className="font-medium">{i.name}</p>
-                        <p className="font-mono text-[11px] text-muted-foreground">
-                          {i.sku}
-                        </p>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold tabular-nums">
-                            {i.stock}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground">
-                            {i.unit}
-                          </span>
-                        </div>
-                        <div className="mt-1.5 h-1 w-24 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={`h-full rounded-full ${i.status === 'Agotado' ? 'bg-destructive' : i.status === 'Bajo stock' ? 'bg-warning' : 'bg-success'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-muted-foreground">
-                        {i.min}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <Badge
-                          className={`${stockColor[i.status]} font-medium`}
-                        >
-                          {i.status}
-                        </Badge>
-                      </td>
-                      <td className="px-5 py-3.5 text-muted-foreground">
-                        {i.location}
-                      </td>
-                      <td className="px-5 py-3.5 text-muted-foreground">
-                        {i.supplier}
-                      </td>
+            {isLoading ? (
+              <InventoryTableSkeleton />
+            ) : isError ? (
+              <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-6 text-center">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <div className="space-y-1">
+                  <p className="font-medium">No se pudo cargar el inventario</p>
+                  <p className="text-sm text-muted-foreground">
+                    {error instanceof Error
+                      ? error.message
+                      : 'Ocurrió un error al consultar la API.'}
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => void refetch()}>
+                  Reintentar
+                </Button>
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-6 text-center">
+                <Boxes className="h-8 w-8 text-muted-foreground" />
+                <p className="font-medium">No hay inventario registrado</p>
+                <p className="text-sm text-muted-foreground">
+                  Cuando existan productos, aparecerán listados aquí.
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                {isFetching ? (
+                  <div className="absolute inset-x-0 top-0 h-0.5 bg-border">
+                    <div className="h-full w-full animate-pulse bg-primary/70" />
+                  </div>
+                ) : null}
+
+                <table className="w-full text-sm">
+                  <thead className="border-b border-border bg-muted/40 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-5 py-3 text-left">Producto</th>
+                      <th className="px-5 py-3 text-left">Stock</th>
+                      <th className="px-5 py-3 text-left">Mínimo</th>
+                      <th className="px-5 py-3 text-left">Estado</th>
+                      <th className="px-5 py-3 text-left">Unidad</th>
+                      <th className="px-5 py-3 text-left">Creado</th>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {items.map((item) => {
+                      const status = getStockStatus(item)
+                      const progress = Math.min(
+                        100,
+                        (item.stock_actual /
+                          Math.max(item.stock_minimo * 2, 1)) *
+                          100,
+                      )
+
+                      return (
+                        <tr
+                          key={item.id}
+                          onClick={() => setSelected(item)}
+                          className="cursor-pointer transition hover:bg-muted/40"
+                        >
+                          <td className="px-5 py-3.5">
+                            <p className="font-medium">{item.nombre}</p>
+                            <p className="font-mono text-[11px] text-muted-foreground">
+                              ID #{item.id}
+                            </p>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold tabular-nums">
+                                {item.stock_actual}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {item.unidad_de_medida}
+                              </span>
+                            </div>
+                            <div className="mt-1.5 h-1 w-24 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={`h-full rounded-full ${status === 'Agotado' ? 'bg-destructive' : status === 'Bajo stock' ? 'bg-warning' : 'bg-success'}`}
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-muted-foreground">
+                            {item.stock_minimo}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <Badge
+                              className={`${stockColor[status]} font-medium`}
+                            >
+                              {status}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-3.5 text-muted-foreground">
+                            {item.unidad_de_medida}
+                          </td>
+                          <td className="px-5 py-3.5 text-muted-foreground">
+                            {formatInventoryDate(item.created_at)}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
+
+          {pagination && items.length > 0 ? (
+            <div className="flex flex-col gap-3 border-t border-border px-5 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <span>{pagination.total} registros en total</span>
+
+                {hasPagination ? (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1 || isFetching}
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </Button>
+
+                    {pageNumbers.map((pageNumber) => (
+                      <Button
+                        key={pageNumber}
+                        variant={
+                          pageNumber === currentPage ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        onClick={() => setPage(pageNumber)}
+                        disabled={isFetching}
+                        className="min-w-8"
+                      >
+                        {pageNumber}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages || isFetching}
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </Card>
       </div>
 
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      <Sheet
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
         <SheetContent className="w-full overflow-y-auto overflow-x-hidden sm:max-w-xl">
           {selected && (
             <>
               <SheetHeader className="border-b border-border pb-5">
                 <Badge
-                  className={`${stockColor[selected.status]} w-fit font-medium`}
+                  className={`${stockColor[getStockStatus(selected)]} w-fit font-medium`}
                 >
-                  {selected.status}
+                  {getStockStatus(selected)}
                 </Badge>
-                <SheetTitle className="text-xl">{selected.name}</SheetTitle>
+                <SheetTitle className="text-xl">{selected.nombre}</SheetTitle>
                 <SheetDescription className="font-mono text-xs">
-                  {selected.sku}
+                  ID #{selected.id}
                 </SheetDescription>
               </SheetHeader>
 
@@ -280,55 +350,63 @@ export const InventarioPage = () => {
                     Stock actual
                   </p>
                   <p className="mt-1 text-4xl font-semibold tabular-nums">
-                    {selected.stock}{' '}
+                    {selected.stock_actual}{' '}
                     <span className="text-base font-normal text-muted-foreground">
-                      {selected.unit}
+                      {selected.unidad_de_medida}
                     </span>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Mínimo recomendado: {selected.min}
+                    Mínimo recomendado: {selected.stock_minimo}
                   </p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Card className="gap-1 border-border bg-card p-4">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" /> Ubicación
+                      <Boxes className="h-3 w-3" /> Unidad de medida
                     </div>
-                    <p className="text-sm font-semibold">{selected.location}</p>
+                    <p className="text-sm font-semibold">
+                      {selected.unidad_de_medida}
+                    </p>
                   </Card>
                   <Card className="gap-1 border-border bg-card p-4">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Truck className="h-3 w-3" /> Proveedor
+                      <Calendar className="h-3 w-3" /> Fecha de registro
                     </div>
-                    <p className="text-sm font-semibold">{selected.supplier}</p>
+                    <p className="text-sm font-semibold">
+                      {formatInventoryDate(selected.created_at)}
+                    </p>
                   </Card>
                 </div>
 
                 <Card className="gap-3 border-border bg-card p-4">
                   <h4 className="text-sm font-semibold">
-                    Movimientos recientes
+                    Detalle del inventario
                   </h4>
-                  <ul className="space-y-2 text-xs">
-                    <li className="flex justify-between">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-4">
                       <span className="text-muted-foreground">
-                        29 Abr · Salida pedido CR-1054
+                        Stock actual
                       </span>
-                      <span className="font-medium text-destructive">-3</span>
-                    </li>
-                    <li className="flex justify-between">
+                      <span className="font-medium tabular-nums">
+                        {selected.stock_actual}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4">
                       <span className="text-muted-foreground">
-                        28 Abr · Entrada de proveedor
+                        Stock mínimo
                       </span>
-                      <span className="font-medium text-success">+15</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        27 Abr · Salida pedido CR-1051
+                      <span className="font-medium tabular-nums">
+                        {selected.stock_minimo}
                       </span>
-                      <span className="font-medium text-destructive">-4</span>
-                    </li>
-                  </ul>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">Bajo stock</span>
+                      <span className="font-medium">
+                        {selected.bajo_stock ? 'Sí' : 'No'}
+                      </span>
+                    </div>
+                  </div>
                 </Card>
               </div>
 
