@@ -23,7 +23,7 @@ export const AdminTopBar = ({
             to="/admin"
             className="flex items-center gap-1 hover:text-foreground"
           >
-            <Home className="h-3 w-3" /> Admin
+            <Home className="h-3 w-3" /> Dashboard
           </Link>
           {breadcrumbs.map((b, i) => (
             <span key={i} className="flex items-center gap-1.5">
