@@ -98,7 +98,7 @@ export const AdminSidebar = () => {
               variant="outline"
               className="border-border bg-card text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
             >
-              Admin
+              {displayRole}
             </Badge>
           </div>
         ) : (
