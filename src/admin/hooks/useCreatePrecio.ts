@@ -8,7 +8,14 @@ export const useCreatePrecio = () => {
 
   return useMutation({
     mutationFn: createPrecioService,
-    onSuccess: async (_, variables) => {
+    onSuccess: async (createdPrecio, variables) => {
+      if (createdPrecio) {
+        queryClient.setQueryData(
+          preciosQueryKeys.detailByProducto(variables.id_producto),
+          createdPrecio,
+        )
+      }
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: preciosQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: productosQueryKeys.all }),

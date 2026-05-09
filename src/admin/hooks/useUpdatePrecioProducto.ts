@@ -8,7 +8,28 @@ export const useUpdatePrecioProducto = () => {
 
   return useMutation({
     mutationFn: updatePrecioProductoService,
-    onSuccess: async (_, variables) => {
+    onSuccess: async (updatedPrecio, variables) => {
+      if (updatedPrecio) {
+        queryClient.setQueryData(
+          preciosQueryKeys.detailByProducto(variables.idProducto),
+          updatedPrecio,
+        )
+
+        queryClient.setQueriesData(
+          { queryKey: preciosQueryKeys.lists() },
+          (currentData: { items?: Array<{ id: number }> } | undefined) => {
+            if (!currentData?.items) return currentData
+
+            return {
+              ...currentData,
+              items: currentData.items.map((item) =>
+                item.id === updatedPrecio.id ? updatedPrecio : item,
+              ),
+            }
+          },
+        )
+      }
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: preciosQueryKeys.all }),
         queryClient.invalidateQueries({

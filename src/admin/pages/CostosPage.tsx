@@ -273,12 +273,18 @@ export const CostosPage = () => {
     }
 
     try {
-      await updatePrecioProducto.mutateAsync({
+      const updatedPrecio = await updatePrecioProducto.mutateAsync({
         idProducto: selectedPrecio.id_producto,
         payload: {
           margen_ganancia: selectedFormValues.margen_ganancia,
         },
       })
+
+      if (updatedPrecio) {
+        setSelectedPrecio(updatedPrecio)
+        setFormValues(getInitialFormState(updatedPrecio))
+        setFormErrors({})
+      }
 
       toast.success('Precio actualizado', {
         description: 'Los cambios se guardaron correctamente.',
