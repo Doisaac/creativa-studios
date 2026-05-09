@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { movimientosQueryKeys } from './movimientos-query-keys'
+import { preciosQueryKeys } from './precios-query-keys'
 import { productosQueryKeys } from './productos-query-keys'
 import { createProductoService } from '../services/create-producto.service'
 
@@ -13,6 +14,9 @@ export const useCreateProducto = () => {
         queryClient.invalidateQueries({ queryKey: productosQueryKeys.all }),
         queryClient.invalidateQueries({
           queryKey: movimientosQueryKeys.inventoryOptions(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: preciosQueryKeys.productOptions(),
         }),
       ])
     },
