@@ -8,6 +8,7 @@ import { AdminLayout } from './admin/layouts/AdminLayout'
 import { DashboardPage } from './admin/pages/DashboardPage'
 import { InventarioPage } from './admin/pages/InventarioPage'
 import { MovimientosPage } from './admin/pages/MovimientosPage'
+import { ProductoPage } from './admin/pages/ProductoPage'
 import { PedidosPage } from './admin/pages/PedidosPage'
 import { ClientesPage } from './admin/pages/ClientesPage'
 import { CostosPage } from './admin/pages/CostosPage'
@@ -45,6 +46,10 @@ export const appRouter = createBrowserRouter([
       {
         path: 'inventario',
         element: <InventarioPage />,
+      },
+      {
+        path: 'productos',
+        element: <ProductoPage />,
       },
       {
         path: 'movimientos',
