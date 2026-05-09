@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   ShoppingBag,
   Boxes,
+  Box,
   ClipboardList,
   Users,
   DollarSign,
@@ -56,6 +57,7 @@ const groups: MenuGroup[] = [
     label: 'Gestión',
     items: [
       { to: '/admin/inventario', label: 'Inventario', icon: Boxes },
+      { to: '/admin/productos', label: 'Productos', icon: Box },
       {
         to: '/admin/movimientos',
         label: 'Movimientos de Inventario',
