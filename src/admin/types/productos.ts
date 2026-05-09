@@ -18,6 +18,12 @@ export interface ProductoPageData {
   pagination: InventarioPagination
 }
 
+export const buildProductoPrecioOptions = (data: ProductoPageData) =>
+  data.items.map(({ id, nombre }) => ({
+    id,
+    nombre,
+  }))
+
 export interface CreateProductoPayload {
   nombre: string
   tipo: string

@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit3,
-  Eye,
   Loader2,
   PackageSearch,
   Plus,
@@ -75,8 +74,8 @@ const productoTypeClassName: Record<string, string> = {
 const ProductoTableSkeleton = () => (
   <div className="space-y-3 p-5">
     {Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} className="grid grid-cols-8 gap-4">
-        {Array.from({ length: 8 }).map((__, cellIndex) => (
+      <div key={index} className="grid grid-cols-7 gap-4">
+        {Array.from({ length: 7 }).map((__, cellIndex) => (
           <Skeleton key={cellIndex} className="h-12 w-full" />
         ))}
       </div>
@@ -500,14 +499,14 @@ export const ProductoPage = () => {
                         Insumo relacionado
                       </th>
                       <th className="px-5 py-3 text-left">Fecha</th>
-                      <th className="px-5 py-3 text-left">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {filteredItems.map((item) => (
                       <tr
                         key={item.id}
-                        className="transition hover:bg-muted/40"
+                        onClick={() => setSelectedId(item.id)}
+                        className="cursor-pointer transition hover:bg-muted/40"
                       >
                         <td className="px-5 py-3.5">
                           <p className="font-medium">#{item.id}</p>
@@ -540,31 +539,6 @@ export const ProductoPage = () => {
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground">
                           {formatDateTime(item.created_at)}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedId(item.id)}
-                            >
-                              <Eye className="h-3.5 w-3.5" /> Ver
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedId(item.id)}
-                            >
-                              <Edit3 className="h-3.5 w-3.5" /> Editar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedId(item.id)}
-                            >
-                              <Trash className="h-3.5 w-3.5" /> Eliminar
-                            </Button>
-                          </div>
                         </td>
                       </tr>
                     ))}
