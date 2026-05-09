@@ -25,6 +25,7 @@ import {
 import { Logo } from '@/components/custom/CustomLogo'
 import { Badge } from '@/components/ui/badge'
 import { Link, useLocation } from 'react-router'
+import { useAuthStore } from '@/auth/store/authStore'
 
 interface MenuItem {
   to: string
@@ -72,6 +73,17 @@ export const AdminSidebar = () => {
   const { state } = useSidebar()
   const collapsed = state === 'collapsed'
   const { pathname } = useLocation()
+  const user = useAuthStore((state) => state.user)
+
+  const displayName = user?.nombre ?? 'Usuario'
+  const displayRole = user?.rol ?? 'ADMIN'
+  const userInitials = displayName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 2)
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + '/')
@@ -152,21 +164,21 @@ export const AdminSidebar = () => {
         {!collapsed ? (
           <button className="flex w-full items-center gap-2.5 rounded-md p-2 text-left transition hover:bg-sidebar-accent">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-brand text-brand-foreground text-xs font-semibold">
-              JM
+              {userInitials || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="truncate text-[13px] font-semibold text-sidebar-foreground">
-                Douglas Barrera
+                {displayName}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
-                Administrador
+                {displayRole}
               </p>
             </div>
             <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
         ) : (
           <div className="grid h-8 w-8 place-items-center rounded-md bg-brand text-brand-foreground text-xs font-semibold">
-            JM
+            {userInitials || 'U'}
           </div>
         )}
       </SidebarFooter>
