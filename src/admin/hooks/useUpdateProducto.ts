@@ -14,6 +14,10 @@ export const useUpdateProducto = () => {
         queryClient.invalidateQueries({
           queryKey: productosQueryKeys.detail(variables.id),
         }),
+        queryClient.invalidateQueries({ queryKey: preciosQueryKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: preciosQueryKeys.detailByProducto(variables.id),
+        }),
         queryClient.invalidateQueries({
           queryKey: preciosQueryKeys.productOptions(),
         }),
