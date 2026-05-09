@@ -10,6 +10,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/auth/store/authStore'
 import { AdminTopBar } from '../components/AdminTopBar'
 
 const metrics = [
@@ -86,9 +87,12 @@ const recent = [
 ]
 
 export const DashboardPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const displayName = user?.nombre ?? 'Usuario'
+
   return (
     <div className="space-y-8">
-      <AdminTopBar title="Buen día, Douglas 👋🏻" />
+      <AdminTopBar title={`Buen dia, ${displayName} 👋🏻`} />
 
       {/* Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 p-4 sm:p-6">
