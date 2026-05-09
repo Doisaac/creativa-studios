@@ -132,7 +132,7 @@ export const MovimientosPage = () => {
   const [createFormErrors, setCreateFormErrors] =
     useState<MovimientoFormErrors>({})
 
-  const effectiveLimit = pageSize === 'all' ? 999 : pageSize
+  const effectiveLimit = pageSize === 'all' ? 100 : pageSize
   const { data, error, isError, isFetching, isLoading, refetch } =
     useMovimientos({ page, limit: effectiveLimit })
   const {
