@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { inventarioQueryKeys } from './inventario-query-keys'
 import { movimientosQueryKeys } from './movimientos-query-keys'
 import { createMovimientoService } from '../services/create-movimiento.service'
 
@@ -14,6 +15,9 @@ export const useCreateMovimiento = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: movimientosQueryKeys.inventoryList(variables.id_inventario),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: inventarioQueryKeys.all,
         }),
       ])
     },
