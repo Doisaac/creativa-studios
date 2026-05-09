@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
+import { formatDateTime } from '@/lib/format-date'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useCreateInventario } from '../hooks/useCreateInventario'
 import { useDeleteInventario } from '../hooks/useDeleteInventario'
@@ -70,36 +71,11 @@ const stockColor: Record<Stock, string> = {
   Agotado: 'bg-destructive/10 text-destructive border border-destructive/20',
 }
 
-const EL_SALVADOR_TIME_ZONE = 'America/El_Salvador'
-
 const getStockStatus = (item: InventarioItem): Stock => {
   if (item.stock_actual <= 0) return 'Agotado'
   if (item.bajo_stock) return 'Bajo stock'
 
   return 'En stock'
-}
-
-const formatInventoryDate = (date?: string | null) => {
-  if (!date) {
-    return 'Fecha no disponible'
-  }
-
-  const parsedDate = new Date(date)
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return 'Fecha no disponible'
-  }
-
-  try {
-    return parsedDate.toLocaleString('es-SV', {
-      timeZone: EL_SALVADOR_TIME_ZONE,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      hour12: true,
-    })
-  } catch {
-    return 'Fecha no disponible'
-  }
 }
 
 const InventoryTableSkeleton = () => (
@@ -232,12 +208,7 @@ export const InventarioPage = () => {
         unit: 'mm',
         format: 'a4',
       })
-      const exportedAt = new Date().toLocaleString('es-SV', {
-        timeZone: EL_SALVADOR_TIME_ZONE,
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        hour12: true,
-      })
+      const exportedAt = formatDateTime(new Date().toISOString())
 
       document.setFontSize(16)
       document.text('Inventario', 14, 16)
@@ -254,7 +225,7 @@ export const InventarioPage = () => {
           item.stock_minimo.toString(),
           getStockStatus(item),
           item.unidad_de_medida,
-          formatInventoryDate(item.created_at),
+          formatDateTime(item.created_at),
         ]),
         styles: {
           fontSize: 9,
@@ -695,7 +666,7 @@ export const InventarioPage = () => {
                             {item.unidad_de_medida}
                           </td>
                           <td className="px-5 py-3.5 text-muted-foreground">
-                            {formatInventoryDate(item.created_at)}
+                            {formatDateTime(item.created_at)}
                           </td>
                         </tr>
                       )
@@ -962,7 +933,7 @@ export const InventarioPage = () => {
                       <Calendar className="h-3 w-3" /> Fecha de registro
                     </div>
                     <p className="text-sm font-semibold">
-                      {formatInventoryDate(selectedItem.created_at)}
+                      {formatDateTime(selectedItem.created_at)}
                     </p>
                   </Card>
                 </div>

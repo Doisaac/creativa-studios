@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
+import { formatDateTime } from '@/lib/format-date'
 import { cn } from '@/lib/utils'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useCreateMovimiento } from '../hooks/useCreateMovimiento'
@@ -51,8 +52,6 @@ interface MovimientoFormErrors {
   id_inventario?: string
 }
 
-const EL_SALVADOR_TIME_ZONE = 'America/El_Salvador'
-
 const movimientoBadgeClass: Record<TipoMovimientoInventario, string> = {
   entrada: 'bg-success/10 text-success border border-success/20',
   salida: 'bg-destructive/10 text-destructive border border-destructive/20',
@@ -70,29 +69,6 @@ const movimientoIcon = {
 
 const nativeFieldClassName =
   'flex min-h-9 w-full rounded-md border border-input bg-transparent px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40'
-
-const formatMovimientoDate = (date?: string | null) => {
-  if (!date) {
-    return 'Fecha no disponible'
-  }
-
-  const parsedDate = new Date(date)
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return 'Fecha no disponible'
-  }
-
-  try {
-    return parsedDate.toLocaleString('es-SV', {
-      timeZone: EL_SALVADOR_TIME_ZONE,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      hour12: true,
-    })
-  } catch {
-    return 'Fecha no disponible'
-  }
-}
 
 const MovimientoTableSkeleton = () => (
   <div className="space-y-3 p-5">
@@ -485,7 +461,7 @@ export const MovimientosPage = () => {
                             </span>
                           </td>
                           <td className="px-5 py-3.5 text-muted-foreground">
-                            {formatMovimientoDate(item.fecha_movimiento)}
+                            {formatDateTime(item.fecha_movimiento)}
                           </td>
                           <td className="px-5 py-3.5">
                             <Button
@@ -793,9 +769,7 @@ export const MovimientosPage = () => {
                   <Card className="gap-1 border-border bg-card p-4">
                     <div className="text-xs text-muted-foreground">Fecha</div>
                     <p className="text-sm font-semibold">
-                      {formatMovimientoDate(
-                        selectedMovimiento.fecha_movimiento,
-                      )}
+                      {formatDateTime(selectedMovimiento.fecha_movimiento)}
                     </p>
                   </Card>
                 </div>
@@ -858,7 +832,7 @@ export const MovimientosPage = () => {
                                   Movimiento #{item.id}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {formatMovimientoDate(item.fecha_movimiento)}
+                                  {formatDateTime(item.fecha_movimiento)}
                                 </p>
                               </div>
                               <Badge
