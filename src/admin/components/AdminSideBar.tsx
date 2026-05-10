@@ -45,26 +45,26 @@ const groups: MenuGroup[] = [
     label: 'Operaciones',
     items: [
       { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+      { to: '/admin/clientes', label: 'Clientes', icon: Users },
       {
         to: '/admin/pedidos',
         label: 'Pedidos',
         icon: ShoppingBag,
         badge: '12',
       },
-      { to: '/admin/clientes', label: 'Clientes', icon: Users },
     ],
   },
   {
     label: 'Gestión',
     items: [
       { to: '/admin/inventario', label: 'Inventario', icon: Boxes },
-      { to: '/admin/productos', label: 'Productos', icon: Box },
       {
         to: '/admin/movimientos',
         label: 'Movimientos de Inventario',
         icon: ClipboardList,
       },
       { to: '/admin/costos', label: 'Costos y precios', icon: DollarSign },
+      { to: '/admin/productos', label: 'Productos', icon: Box },
     ],
   },
 ]
