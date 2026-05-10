@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { dashboardQueryKeys } from './dashboard-query-keys'
 import { inventarioQueryKeys } from './inventario-query-keys'
 import { movimientosQueryKeys } from './movimientos-query-keys'
 import { pedidosQueryKeys } from './pedidos-query-keys'
@@ -24,6 +25,15 @@ export const useUpdatePedidoEstado = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: inventarioQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: inventarioQueryKeys.lowStock(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardQueryKeys.orders(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardQueryKeys.inventory(),
         }),
         queryClient.invalidateQueries({
           queryKey: movimientosQueryKeys.all,
