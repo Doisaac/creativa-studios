@@ -50,7 +50,6 @@ const groups: MenuGroup[] = [
         to: '/admin/pedidos',
         label: 'Pedidos',
         icon: ShoppingBag,
-        badge: '12',
       },
     ],
   },
