@@ -51,7 +51,7 @@ import type {
   UpdateClientePayload,
 } from '../types/clientes'
 
-type ClientePageSize = 10 | 20 | 30
+type ClientePageSize = 9 | 18 | 27
 
 interface ClienteFormValues {
   nombre_comercial: string
@@ -205,7 +205,7 @@ const ClienteDetailSkeleton = () => (
 
 export const ClientesPage = () => {
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState<ClientePageSize>(10)
+  const [pageSize, setPageSize] = useState<ClientePageSize>(9)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
@@ -576,7 +576,7 @@ export const ClientesPage = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <span>Mostrar</span>
 
-                {[10, 20, 30].map((size) => (
+                {[9, 18, 27].map((size) => (
                   <Button
                     key={size}
                     variant={pageSize === size ? 'default' : 'outline'}
