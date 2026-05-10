@@ -12,6 +12,7 @@ import {
   Loader2,
   MoreHorizontal,
   Package,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
@@ -43,17 +44,20 @@ import { useCreatePedido } from '../hooks/useCreatePedido'
 import { usePedidoById } from '../hooks/usePedidoById'
 import { usePedidos } from '../hooks/usePedidos'
 import { usePrecios } from '../hooks/usePrecios'
+import { useUpdatePedido } from '../hooks/useUpdatePedido'
 import { useUpdatePedidoEstado } from '../hooks/useUpdatePedidoEstado'
 import type { ClienteItem } from '../types/clientes'
 import type {
   CreatePedidoPayload,
   PedidoEstado,
   PedidoListItem,
+  UpdatePedidoPayload,
 } from '../types/pedidos'
 import type { PrecioItem } from '../types/precios'
 
 type PedidoEstadoFilter = 'todos' | PedidoEstado
 type PedidoView = 'tabla' | 'kanban'
+type PedidoFormMode = 'create' | 'edit'
 
 interface CreatePedidoDetalleFormValues {
   id_producto: string
@@ -273,16 +277,25 @@ const hasCreatePedidoFormErrors = (errors: CreatePedidoFormErrors) =>
     ),
   )
 
-const buildCreatePedidoPayload = (
+const buildPedidoPayload = (
   values: CreatePedidoFormValues,
-): CreatePedidoPayload => ({
-  id_cliente: Number(values.id_cliente),
-  fecha_entrega: values.fecha_entrega.trim() || undefined,
-  detalles: values.detalles.map((detalle) => ({
-    id_producto: Number(detalle.id_producto),
-    cantidad: Number(detalle.cantidad),
-  })),
-})
+): CreatePedidoPayload | UpdatePedidoPayload => {
+  const payload: CreatePedidoPayload = {
+    id_cliente: Number(values.id_cliente),
+    detalles: values.detalles.map((detalle) => ({
+      id_producto: Number(detalle.id_producto),
+      cantidad: Number(detalle.cantidad),
+    })),
+  }
+
+  const fechaEntrega = values.fecha_entrega.trim()
+
+  if (fechaEntrega) {
+    payload.fecha_entrega = fechaEntrega
+  }
+
+  return payload
+}
 
 const PedidosTableSkeleton = () => (
   <div className="divide-y divide-border">
@@ -328,6 +341,9 @@ export const PedidosPage = () => {
   const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null)
 
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
+  const [pedidoFormMode, setPedidoFormMode] = useState<PedidoFormMode>('create')
+  const [editingPedidoId, setEditingPedidoId] = useState<number | null>(null)
+
   const [isClientePickerOpen, setIsClientePickerOpen] = useState(false)
   const [activeProductoPickerIndex, setActiveProductoPickerIndex] = useState<
     number | null
@@ -385,6 +401,7 @@ export const PedidosPage = () => {
   } = usePedidoById({ id: selectedPedidoId })
 
   const createPedido = useCreatePedido()
+  const updatePedido = useUpdatePedido()
   const updatePedidoEstado = useUpdatePedidoEstado()
 
   const pedidos = data?.items ?? []
@@ -394,6 +411,7 @@ export const PedidosPage = () => {
   const totalPedidos = pagination?.total ?? 0
   const clientes = clientesData?.items ?? []
   const precios = preciosData?.items ?? []
+  const isSavingPedido = createPedido.isPending || updatePedido.isPending
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
 
@@ -461,12 +479,22 @@ export const PedidosPage = () => {
   }
 
   const resetCreateForm = () => {
+    setPedidoFormMode('create')
+    setEditingPedidoId(null)
     setCreateFormValues(getInitialCreatePedidoFormState())
     setCreateFormErrors({})
     setClienteSearch('')
     setProductoSearchTerms({})
     setIsClientePickerOpen(false)
     setActiveProductoPickerIndex(null)
+  }
+
+  const handleOpenCreatePedidoSheet = () => {
+    resetCreateForm()
+    setPedidoFormMode('create')
+    setEditingPedidoId(null)
+    setIsCreateSheetOpen(true)
+    void Promise.all([refetchClientes(), refetchPrecios()])
   }
 
   const handleCreateSheetOpenChange = (open: boolean) => {
@@ -478,6 +506,55 @@ export const PedidosPage = () => {
     }
 
     resetCreateForm()
+  }
+
+  const handleOpenEditPedidoSheet = () => {
+    if (!selectedPedido || selectedPedido.estado !== 'pendiente') {
+      return
+    }
+
+    setPedidoFormMode('edit')
+    setEditingPedidoId(selectedPedido.id)
+
+    setCreateFormValues({
+      id_cliente: String(selectedPedido.id_cliente),
+      fecha_entrega: selectedPedido.fecha_entrega
+        ? selectedPedido.fecha_entrega.slice(0, 10)
+        : '',
+      detalles: selectedPedido.detalles.map((detalle) => ({
+        id_producto: String(detalle.id_producto),
+        cantidad: String(detalle.cantidad),
+      })),
+    })
+
+    setClienteSearch(
+      `${selectedPedido.cliente_nombre_comercial} — ${
+        selectedPedido.cliente_nombre_contacto
+      }${
+        selectedPedido.cliente_telefono
+          ? ` · ${selectedPedido.cliente_telefono}`
+          : ''
+      }`,
+    )
+
+    setProductoSearchTerms(
+      Object.fromEntries(
+        selectedPedido.detalles.map((detalle, index) => [
+          index,
+          `${detalle.producto_nombre} — ${formatCurrency(
+            detalle.precio_unitario,
+          )}`,
+        ]),
+      ),
+    )
+
+    setCreateFormErrors({})
+    setIsClientePickerOpen(false)
+    setActiveProductoPickerIndex(null)
+    setSelectedPedidoId(null)
+    setIsCreateSheetOpen(true)
+
+    void Promise.all([refetchClientes(), refetchPrecios()])
   }
 
   const handleEstadoFilterChange = (estado: PedidoEstadoFilter) => {
@@ -497,11 +574,6 @@ export const PedidosPage = () => {
       ...current,
       id_cliente: '',
     }))
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      id_cliente: undefined,
-    }))
   }
 
   const handleSelectCliente = (cliente: ClienteItem) => {
@@ -512,22 +584,12 @@ export const PedidosPage = () => {
 
     setClienteSearch(getClientePickerLabel(cliente))
     setIsClientePickerOpen(false)
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      id_cliente: undefined,
-    }))
   }
 
   const handleCreateDateChange = (event: ChangeEvent<HTMLInputElement>) => {
     setCreateFormValues((current) => ({
       ...current,
       fecha_entrega: event.target.value,
-    }))
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      fecha_entrega: undefined,
     }))
   }
 
@@ -548,18 +610,6 @@ export const PedidosPage = () => {
               id_producto: '',
             }
           : detalle,
-      ),
-    }))
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      detalleErrors: current.detalleErrors?.map((detalleError, detalleIndex) =>
-        detalleIndex === index
-          ? {
-              ...detalleError,
-              id_producto: undefined,
-            }
-          : detalleError,
       ),
     }))
   }
@@ -583,18 +633,6 @@ export const PedidosPage = () => {
     }))
 
     setActiveProductoPickerIndex(null)
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      detalleErrors: current.detalleErrors?.map((detalleError, detalleIndex) =>
-        detalleIndex === index
-          ? {
-              ...detalleError,
-              id_producto: undefined,
-            }
-          : detalleError,
-      ),
-    }))
   }
 
   const handleCantidadChange = (index: number, value: string) => {
@@ -607,18 +645,6 @@ export const PedidosPage = () => {
               cantidad: value,
             }
           : detalle,
-      ),
-    }))
-
-    setCreateFormErrors((current) => ({
-      ...current,
-      detalleErrors: current.detalleErrors?.map((detalleError, detalleIndex) =>
-        detalleIndex === index
-          ? {
-              ...detalleError,
-              cantidad: undefined,
-            }
-          : detalleError,
       ),
     }))
   }
@@ -684,8 +710,29 @@ export const PedidosPage = () => {
     if (hasCreatePedidoFormErrors(errors)) return
 
     try {
+      if (pedidoFormMode === 'edit') {
+        if (!editingPedidoId) {
+          toast.error('No se pudo identificar el pedido a editar.')
+          return
+        }
+
+        const updatedPedido = await updatePedido.mutateAsync({
+          id: editingPedidoId,
+          payload: buildPedidoPayload(createFormValues) as UpdatePedidoPayload,
+        })
+
+        toast.success('Pedido actualizado', {
+          description: 'Los cambios del pedido se guardaron correctamente.',
+        })
+
+        setIsCreateSheetOpen(false)
+        resetCreateForm()
+        setSelectedPedidoId(updatedPedido.id)
+        return
+      }
+
       const createdPedido = await createPedido.mutateAsync(
-        buildCreatePedidoPayload(createFormValues),
+        buildPedidoPayload(createFormValues) as CreatePedidoPayload,
       )
 
       toast.success('Pedido creado', {
@@ -697,12 +744,17 @@ export const PedidosPage = () => {
       resetCreateForm()
       setSelectedPedidoId(createdPedido.id)
     } catch (mutationError) {
-      toast.error('No se pudo crear el pedido', {
-        description: getApiErrorMessage(
-          mutationError,
-          'Revisa los datos e intenta nuevamente.',
-        ),
-      })
+      toast.error(
+        pedidoFormMode === 'edit'
+          ? 'No se pudo actualizar el pedido'
+          : 'No se pudo crear el pedido',
+        {
+          description: getApiErrorMessage(
+            mutationError,
+            'Revisa los datos e intenta nuevamente.',
+          ),
+        },
+      )
     }
   }
 
@@ -735,7 +787,7 @@ export const PedidosPage = () => {
         breadcrumbs={[{ label: 'Pedidos' }]}
         primaryAction={{
           label: 'Nuevo pedido',
-          onClick: () => handleCreateSheetOpenChange(true),
+          onClick: handleOpenCreatePedidoSheet,
         }}
       />
 
@@ -908,9 +960,7 @@ export const PedidosPage = () => {
                               </div>
                               <Button
                                 size="sm"
-                                onClick={() =>
-                                  handleCreateSheetOpenChange(true)
-                                }
+                                onClick={handleOpenCreatePedidoSheet}
                               >
                                 <Plus className="h-4 w-4" /> Nuevo pedido
                               </Button>
@@ -1088,10 +1138,13 @@ export const PedidosPage = () => {
       >
         <SheetContent className="flex h-full flex-col overflow-hidden p-0 sm:max-w-xl">
           <SheetHeader className="border-b border-border px-5 py-5 text-left sm:px-6">
-            <SheetTitle>Nuevo pedido</SheetTitle>
+            <SheetTitle>
+              {pedidoFormMode === 'edit' ? 'Editar pedido' : 'Nuevo pedido'}
+            </SheetTitle>
             <SheetDescription>
-              Selecciona el cliente, la fecha de entrega y los productos del
-              pedido.
+              {pedidoFormMode === 'edit'
+                ? 'Actualiza el cliente, la fecha de entrega y los productos del pedido pendiente.'
+                : 'Selecciona el cliente, la fecha de entrega y los productos del pedido.'}
             </SheetDescription>
           </SheetHeader>
 
@@ -1103,7 +1156,9 @@ export const PedidosPage = () => {
               <div className="rounded-2xl border border-border p-4">
                 <div className="mb-4">
                   <h3 className="font-semibold text-foreground">
-                    Información del pedido
+                    {pedidoFormMode === 'edit'
+                      ? 'Información actualizada'
+                      : 'Información del pedido'}
                   </h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Busca el cliente y define una fecha estimada de entrega.
@@ -1123,7 +1178,7 @@ export const PedidosPage = () => {
                         onFocus={() => setIsClientePickerOpen(true)}
                         placeholder="Buscar por nombre, contacto, teléfono o email..."
                         className="pl-9"
-                        disabled={isClientesLoading || createPedido.isPending}
+                        disabled={isClientesLoading || isSavingPedido}
                       />
                     </div>
 
@@ -1181,7 +1236,7 @@ export const PedidosPage = () => {
                       type="date"
                       value={createFormValues.fecha_entrega}
                       onChange={handleCreateDateChange}
-                      disabled={createPedido.isPending}
+                      disabled={isSavingPedido}
                     />
                     {createFormErrors.fecha_entrega && (
                       <p className="text-xs text-destructive">
@@ -1208,7 +1263,7 @@ export const PedidosPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleAddDetalle}
-                    disabled={createPedido.isPending}
+                    disabled={isSavingPedido}
                   >
                     <Plus className="h-4 w-4" /> Agregar
                   </Button>
@@ -1268,7 +1323,7 @@ export const PedidosPage = () => {
                                   }
                                   placeholder="Buscar producto por nombre o precio..."
                                   className="pl-9"
-                                  disabled={createPedido.isPending}
+                                  disabled={isSavingPedido}
                                 />
                               </div>
 
@@ -1333,7 +1388,7 @@ export const PedidosPage = () => {
                                       event.target.value,
                                     )
                                   }
-                                  disabled={createPedido.isPending}
+                                  disabled={isSavingPedido}
                                 />
                                 {createFormErrors.detalleErrors?.[index]
                                   ?.cantidad && (
@@ -1371,7 +1426,7 @@ export const PedidosPage = () => {
                                 size="icon-sm"
                                 onClick={() => handleRemoveDetalle(index)}
                                 disabled={
-                                  createPedido.isPending ||
+                                  isSavingPedido ||
                                   createFormValues.detalles.length === 1
                                 }
                                 aria-label="Eliminar producto"
@@ -1408,7 +1463,7 @@ export const PedidosPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => handleCreateSheetOpenChange(false)}
-                disabled={createPedido.isPending}
+                disabled={isSavingPedido}
               >
                 Cancelar
               </Button>
@@ -1416,19 +1471,22 @@ export const PedidosPage = () => {
               <Button
                 type="submit"
                 disabled={
-                  createPedido.isPending ||
+                  isSavingPedido ||
                   isClientesLoading ||
                   isPreciosLoading ||
                   precios.length === 0
                 }
               >
-                {createPedido.isPending ? (
+                {isSavingPedido ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Guardando...
                   </>
                 ) : (
                   <>
-                    <ShoppingCart className="h-4 w-4" /> Crear pedido
+                    <ShoppingCart className="h-4 w-4" />
+                    {pedidoFormMode === 'edit'
+                      ? 'Guardar cambios'
+                      : 'Crear pedido'}
                   </>
                 )}
               </Button>
@@ -1478,11 +1536,25 @@ export const PedidosPage = () => {
                   </p>
                 </div>
 
-                <Badge
-                  className={`${ESTADO_STYLES[selectedPedido.estado]} gap-1 font-medium`}
-                >
-                  {ESTADO_LABELS[selectedPedido.estado]}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedPedido.estado === 'pendiente' && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleOpenEditPedidoSheet}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar pedido
+                    </Button>
+                  )}
+
+                  <Badge
+                    className={`${ESTADO_STYLES[selectedPedido.estado]} gap-1 font-medium`}
+                  >
+                    {ESTADO_LABELS[selectedPedido.estado]}
+                  </Badge>
+                </div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

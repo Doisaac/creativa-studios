@@ -82,6 +82,12 @@ export interface CreatePedidoPayload {
   detalles: CreatePedidoDetallePayload[]
 }
 
+export interface UpdatePedidoPayload {
+  id_cliente: number
+  fecha_entrega?: string
+  detalles: CreatePedidoDetallePayload[]
+}
+
 export interface UpdatePedidoEstadoPayload {
   estado: PedidoEstado
 }
