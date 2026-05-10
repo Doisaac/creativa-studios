@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { dashboardQueryKeys } from './dashboard-query-keys'
 import { pedidosQueryKeys } from './pedidos-query-keys'
 import { updatePedidoService } from '../services/update-pedido.service'
 
@@ -19,6 +20,9 @@ export const useUpdatePedido = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: pedidosQueryKeys.detail(variables.id),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardQueryKeys.orders(),
         }),
       ])
     },

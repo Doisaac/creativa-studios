@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { dashboardQueryKeys } from './dashboard-query-keys'
 import { inventarioQueryKeys } from './inventario-query-keys'
 import { updateInventarioService } from '../services/update-inventario.service'
 
@@ -12,6 +13,12 @@ export const useUpdateInventario = () => {
         queryClient.invalidateQueries({ queryKey: inventarioQueryKeys.all }),
         queryClient.invalidateQueries({
           queryKey: inventarioQueryKeys.detail(variables.id),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: inventarioQueryKeys.lowStock(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardQueryKeys.inventory(),
         }),
       ])
     },
