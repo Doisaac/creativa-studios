@@ -527,10 +527,22 @@ export const PedidosPage = () => {
       })),
     })
 
+    const clienteDisplayName =
+      selectedPedido.cliente_nombre_comercial?.trim() ||
+      selectedPedido.cliente_nombre_contacto
+
     setClienteSearch(
       `${selectedPedido.cliente_nombre_comercial} — ${
         selectedPedido.cliente_nombre_contacto
       }${
+        selectedPedido.cliente_telefono
+          ? ` · ${selectedPedido.cliente_telefono}`
+          : ''
+      }`,
+    )
+
+    setClienteSearch(
+      `${clienteDisplayName} — ${selectedPedido.cliente_nombre_contacto}${
         selectedPedido.cliente_telefono
           ? ` · ${selectedPedido.cliente_telefono}`
           : ''
