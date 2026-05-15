@@ -94,8 +94,7 @@ export const HomeFooter = () => {
           </h4>
           <ul className="mt-4 space-y-3 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 text-brand" /> Santa Ana Centro,
-              El Salvador
+              <MapPin className="mt-0.5 h-4 w-4 text-brand" /> Av. Independencia Sur, Santa Ana, El Salvador
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-brand" /> +503 7000 0000
