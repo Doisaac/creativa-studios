@@ -132,7 +132,13 @@ export const AdminTopBar = ({
   }, [])
 
   useEffect(() => {
-    setIsCommandOpen(false)
+    const timeoutId = window.setTimeout(() => {
+      setIsCommandOpen(false)
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
   }, [pathname])
 
   useEffect(() => {

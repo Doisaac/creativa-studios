@@ -414,7 +414,7 @@ export const PedidosPage = () => {
   const totalPages = pagination?.totalPages ?? 1
   const currentPage = pagination?.page ?? page
   const totalPedidos = pagination?.total ?? 0
-  const clientes = clientesData?.items ?? []
+  const clientes = useMemo(() => clientesData?.items ?? [], [clientesData])
   const precios = preciosData?.items ?? []
   const isSavingPedido = createPedido.isPending || updatePedido.isPending
 
