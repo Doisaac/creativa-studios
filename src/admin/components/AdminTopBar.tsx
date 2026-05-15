@@ -92,9 +92,7 @@ export const AdminTopBar = ({
       if (isInstalador) return page.to === '/admin/pedidos'
       if (!isProduccion) return true
 
-      return (
-        page.to !== '/admin/movimientos' && page.to !== '/admin/costos'
-      )
+      return page.to !== '/admin/movimientos' && page.to !== '/admin/costos'
     })
   }, [isInstalador, isProduccion])
 
@@ -238,10 +236,10 @@ export const AdminTopBar = ({
               <Command className="rounded-xl">
                 <CommandInput
                   ref={commandRef}
-                  placeholder="Buscar paginas del admin..."
+                  placeholder="Buscar páginas..."
                 />
                 <CommandList>
-                  <CommandEmpty>No se encontraron paginas.</CommandEmpty>
+                  <CommandEmpty>No se encontraron páginas.</CommandEmpty>
                   <CommandGroup heading="Operaciones">
                     {operationPages.map((page) => (
                       <CommandItem
