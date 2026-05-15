@@ -362,6 +362,18 @@ export const CostosPage = () => {
           ))}
         </div>
 
+        {isRecepcion ? (
+          <Card className="border-border bg-warning/5 p-4 shadow-soft">
+            <p className="text-sm font-medium text-foreground">
+              Vista de solo lectura
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Recepción puede consultar costos y precios, pero no crear ni
+              editar registros.
+            </p>
+          </Card>
+        ) : null}
+
         <Card className="gap-0 overflow-hidden border-border bg-card p-0 shadow-soft">
           <div className="flex flex-col gap-3 border-b border-border p-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative w-full sm:max-w-xs">
@@ -699,9 +711,13 @@ export const CostosPage = () => {
 
                 <Card className="gap-4 border-border bg-card p-4">
                   <div>
-                    <h4 className="text-sm font-semibold">Actualizar margen</h4>
+                    <h4 className="text-sm font-semibold">
+                      {isRecepcion ? 'Detalle del margen' : 'Actualizar margen'}
+                    </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Actualiza el margen de ganancia para este producto.
+                      {isRecepcion
+                        ? 'Consulta el margen y el precio sugerido de este producto.'
+                        : 'Actualiza el margen de ganancia para este producto.'}
                     </p>
                   </div>
 

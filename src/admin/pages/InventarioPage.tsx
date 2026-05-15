@@ -489,6 +489,18 @@ export const InventarioPage = () => {
           ))}
         </div>
 
+        {isReadOnlyRole ? (
+          <Card className="border-border bg-warning/5 p-4 shadow-soft">
+            <p className="text-sm font-medium text-foreground">
+              Vista de solo lectura
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Recepción y Producción pueden consultar inventario, pero no
+              crear, editar ni eliminar registros.
+            </p>
+          </Card>
+        ) : null}
+
         <Card className="gap-0 overflow-hidden border-border bg-card p-0 shadow-soft">
           <div className="flex flex-col gap-3 border-b border-border p-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
@@ -951,9 +963,15 @@ export const InventarioPage = () => {
 
                 <Card className="gap-4 border-border bg-card p-4">
                   <div>
-                    <h4 className="text-sm font-semibold">Editar material</h4>
+                    <h4 className="text-sm font-semibold">
+                      {isReadOnlyRole
+                        ? 'Detalle del material'
+                        : 'Editar material'}
+                    </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Puedes actualizar nombre, stock mínimo y unidad de medida.
+                      {isReadOnlyRole
+                        ? 'Consulta nombre, stock minimo y unidad de medida del material.'
+                        : 'Puedes actualizar nombre, stock minimo y unidad de medida.'}
                     </p>
                   </div>
 

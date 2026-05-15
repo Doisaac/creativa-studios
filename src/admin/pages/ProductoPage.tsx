@@ -438,6 +438,18 @@ export const ProductoPage = () => {
           ))}
         </div>
 
+        {isReadOnlyRole ? (
+          <Card className="border-border bg-warning/5 p-4 shadow-soft">
+            <p className="text-sm font-medium text-foreground">
+              Vista de solo lectura
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Recepción y Producción pueden consultar productos, pero no
+              crear, editar ni eliminar registros.
+            </p>
+          </Card>
+        ) : null}
+
         <Card className="gap-0 overflow-hidden border-border bg-card p-0 shadow-soft">
           <div className="flex flex-col gap-3 border-b border-border p-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative w-full sm:max-w-xs">
@@ -875,10 +887,15 @@ export const ProductoPage = () => {
 
                 <Card className="gap-4 border-border bg-card p-4">
                   <div>
-                    <h4 className="text-sm font-semibold">Editar producto</h4>
+                    <h4 className="text-sm font-semibold">
+                      {isReadOnlyRole
+                        ? 'Detalle del producto'
+                        : 'Editar producto'}
+                    </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Puedes actualizar los datos y cambiar el inventario
-                      relacionado.
+                      {isReadOnlyRole
+                        ? 'Consulta los datos del producto y su relacion con inventario.'
+                        : 'Puedes actualizar los datos y cambiar el inventario relacionado.'}
                     </p>
                   </div>
 

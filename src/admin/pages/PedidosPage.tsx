@@ -47,6 +47,8 @@ import { usePedidos } from '../hooks/usePedidos'
 import { usePrecios } from '../hooks/usePrecios'
 import { useUpdatePedido } from '../hooks/useUpdatePedido'
 import { useUpdatePedidoEstado } from '../hooks/useUpdatePedidoEstado'
+import { useCreateInstalacion } from '../hooks/useCreateInstalacion'
+import { useInstaladores } from '../hooks/useInstaladores'
 import type { ClienteItem } from '../types/clientes'
 import type {
   CreatePedidoPayload,
@@ -55,6 +57,7 @@ import type {
   UpdatePedidoPayload,
 } from '../types/pedidos'
 import type { PrecioItem } from '../types/precios'
+import type { CreateInstalacionPayload } from '../types/instalaciones'
 
 type PedidoEstadoFilter = 'todos' | PedidoEstado
 type PedidoView = 'tabla' | 'kanban'
@@ -65,10 +68,19 @@ interface CreatePedidoDetalleFormValues {
   cantidad: string
 }
 
+interface CreateInstalacionFormValues {
+  requiere_instalacion: boolean
+  id_instalador: string
+  fecha_programada: string
+  direccion_instalacion: string
+  observaciones: string
+}
+
 interface CreatePedidoFormValues {
   id_cliente: string
   fecha_entrega: string
   detalles: CreatePedidoDetalleFormValues[]
+  instalacion: CreateInstalacionFormValues
 }
 
 interface CreatePedidoDetalleFormErrors {
@@ -76,11 +88,19 @@ interface CreatePedidoDetalleFormErrors {
   cantidad?: string
 }
 
+interface CreateInstalacionFormErrors {
+  id_instalador?: string
+  fecha_programada?: string
+  direccion_instalacion?: string
+  observaciones?: string
+}
+
 interface CreatePedidoFormErrors {
   id_cliente?: string
   fecha_entrega?: string
   detalles?: string
   detalleErrors?: CreatePedidoDetalleFormErrors[]
+  instalacion?: CreateInstalacionFormErrors
 }
 
 const PAGE_SIZE = 10
@@ -147,6 +167,13 @@ const getInitialCreatePedidoFormState = (): CreatePedidoFormValues => ({
       cantidad: '1',
     },
   ],
+  instalacion: {
+    requiere_instalacion: false,
+    id_instalador: '',
+    fecha_programada: '',
+    direccion_instalacion: '',
+    observaciones: '',
+  },
 })
 
 const getPedidoCode = (id: number) => `PED-${String(id).padStart(4, '0')}`
@@ -225,11 +252,53 @@ const validateCreatePedidoForm = (
     errors.id_cliente = 'Selecciona un cliente.'
   }
 
-  if (values.fecha_entrega.trim()) {
+  if (!values.fecha_entrega.trim()) {
+    errors.fecha_entrega = 'La fecha de entrega es requerida.'
+  } else {
     const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(values.fecha_entrega.trim())
 
     if (!isValidDate) {
       errors.fecha_entrega = 'La fecha debe tener formato YYYY-MM-DD.'
+    }
+  }
+
+  if (values.instalacion.requiere_instalacion) {
+    const instalacionErrors: CreateInstalacionFormErrors = {}
+
+    if (!values.instalacion.fecha_programada.trim()) {
+      instalacionErrors.fecha_programada =
+        'Selecciona una fecha programada para la instalación.'
+    } else {
+      const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(
+        values.instalacion.fecha_programada.trim(),
+      )
+
+      if (!isValidDate) {
+        instalacionErrors.fecha_programada =
+          'La fecha programada debe tener formato YYYY-MM-DD.'
+      }
+    }
+
+    if (!values.instalacion.direccion_instalacion.trim()) {
+      instalacionErrors.direccion_instalacion =
+        'Ingresa la dirección donde se realizará la instalación.'
+    }
+
+    if (
+      values.instalacion.id_instalador.trim() &&
+      (!Number.isInteger(Number(values.instalacion.id_instalador)) ||
+        Number(values.instalacion.id_instalador) <= 0)
+    ) {
+      instalacionErrors.id_instalador = 'Selecciona un instalador válido.'
+    }
+
+    if (
+      instalacionErrors.id_instalador ||
+      instalacionErrors.fecha_programada ||
+      instalacionErrors.direccion_instalacion ||
+      instalacionErrors.observaciones
+    ) {
+      errors.instalacion = instalacionErrors
     }
   }
 
@@ -275,7 +344,11 @@ const hasCreatePedidoFormErrors = (errors: CreatePedidoFormErrors) =>
     errors.detalles ||
     errors.detalleErrors?.some(
       (detalleError) => detalleError.id_producto || detalleError.cantidad,
-    ),
+    ) ||
+    errors.instalacion?.id_instalador ||
+    errors.instalacion?.fecha_programada ||
+    errors.instalacion?.direccion_instalacion ||
+    errors.instalacion?.observaciones,
   )
 
 const buildPedidoPayload = (
@@ -293,6 +366,38 @@ const buildPedidoPayload = (
 
   if (fechaEntrega) {
     payload.fecha_entrega = fechaEntrega
+  }
+
+  return payload
+}
+
+const buildInstalacionPayload = (
+  values: CreatePedidoFormValues,
+): CreateInstalacionPayload => {
+  const payload: CreateInstalacionPayload = {}
+
+  const idInstalador = Number(values.instalacion.id_instalador)
+
+  if (Number.isInteger(idInstalador) && idInstalador > 0) {
+    payload.id_instalador = idInstalador
+  }
+
+  const fechaProgramada = values.instalacion.fecha_programada.trim()
+
+  if (fechaProgramada) {
+    payload.fecha_programada = fechaProgramada
+  }
+
+  const direccionInstalacion = values.instalacion.direccion_instalacion.trim()
+
+  if (direccionInstalacion) {
+    payload.direccion_instalacion = direccionInstalacion
+  }
+
+  const observaciones = values.instalacion.observaciones.trim()
+
+  if (observaciones) {
+    payload.observaciones = observaciones
   }
 
   return payload
@@ -408,6 +513,13 @@ export const PedidosPage = () => {
   const createPedido = useCreatePedido()
   const updatePedido = useUpdatePedido()
   const updatePedidoEstado = useUpdatePedidoEstado()
+  const createInstalacion = useCreateInstalacion()
+
+  const {
+    data: instaladores = [],
+    isLoading: isInstaladoresLoading,
+    refetch: refetchInstaladores,
+  } = useInstaladores()
 
   const pedidos = data?.items ?? []
   const pagination = data?.pagination
@@ -416,7 +528,12 @@ export const PedidosPage = () => {
   const totalPedidos = pagination?.total ?? 0
   const clientes = useMemo(() => clientesData?.items ?? [], [clientesData])
   const precios = preciosData?.items ?? []
-  const isSavingPedido = createPedido.isPending || updatePedido.isPending
+  const requiereInstalacion = createFormValues.instalacion.requiere_instalacion
+
+  const isSavingPedido =
+    createPedido.isPending ||
+    updatePedido.isPending ||
+    createInstalacion.isPending
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
 
@@ -500,7 +617,11 @@ export const PedidosPage = () => {
     setPedidoFormMode('create')
     setEditingPedidoId(null)
     setIsCreateSheetOpen(true)
-    void Promise.all([refetchClientes(), refetchPrecios()])
+    void Promise.all([
+      refetchClientes(),
+      refetchPrecios(),
+      refetchInstaladores(),
+    ])
   }
 
   const handleCreateSheetOpenChange = (open: boolean) => {
@@ -509,7 +630,11 @@ export const PedidosPage = () => {
     setIsCreateSheetOpen(open)
 
     if (open) {
-      void Promise.all([refetchClientes(), refetchPrecios()])
+      void Promise.all([
+        refetchClientes(),
+        refetchPrecios(),
+        refetchInstaladores(),
+      ])
       return
     }
 
@@ -533,6 +658,13 @@ export const PedidosPage = () => {
         id_producto: String(detalle.id_producto),
         cantidad: String(detalle.cantidad),
       })),
+      instalacion: {
+        requiere_instalacion: false,
+        id_instalador: '',
+        fecha_programada: '',
+        direccion_instalacion: '',
+        observaciones: '',
+      },
     })
 
     const clienteDisplayName =
@@ -574,7 +706,11 @@ export const PedidosPage = () => {
     setSelectedPedidoId(null)
     setIsCreateSheetOpen(true)
 
-    void Promise.all([refetchClientes(), refetchPrecios()])
+    void Promise.all([
+      refetchClientes(),
+      refetchPrecios(),
+      refetchInstaladores(),
+    ])
   }
 
   const handleEstadoFilterChange = (estado: PedidoEstadoFilter) => {
@@ -600,6 +736,14 @@ export const PedidosPage = () => {
     setCreateFormValues((current) => ({
       ...current,
       id_cliente: String(cliente.id),
+      instalacion: {
+        ...current.instalacion,
+        direccion_instalacion:
+          current.instalacion.requiere_instalacion &&
+          !current.instalacion.direccion_instalacion.trim()
+            ? (cliente.direccion ?? '')
+            : current.instalacion.direccion_instalacion,
+      },
     }))
 
     setClienteSearch(getClientePickerLabel(cliente))
@@ -607,9 +751,71 @@ export const PedidosPage = () => {
   }
 
   const handleCreateDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+
     setCreateFormValues((current) => ({
       ...current,
-      fecha_entrega: event.target.value,
+      fecha_entrega: value,
+      instalacion: {
+        ...current.instalacion,
+        fecha_programada:
+          current.instalacion.requiere_instalacion &&
+          !current.instalacion.fecha_programada
+            ? value
+            : current.instalacion.fecha_programada,
+      },
+    }))
+  }
+
+  const handleToggleRequiereInstalacion = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const checked = event.target.checked
+
+    setCreateFormValues((current) => {
+      const cliente = clientes.find(
+        (clienteItem) => clienteItem.id === Number(current.id_cliente),
+      )
+
+      return {
+        ...current,
+        instalacion: checked
+          ? {
+              ...current.instalacion,
+              requiere_instalacion: true,
+              fecha_programada:
+                current.instalacion.fecha_programada || current.fecha_entrega,
+              direccion_instalacion:
+                current.instalacion.direccion_instalacion ||
+                cliente?.direccion ||
+                '',
+            }
+          : {
+              requiere_instalacion: false,
+              id_instalador: '',
+              fecha_programada: '',
+              direccion_instalacion: '',
+              observaciones: '',
+            },
+      }
+    })
+
+    setCreateFormErrors((current) => ({
+      ...current,
+      instalacion: undefined,
+    }))
+  }
+
+  const handleInstalacionFieldChange = (
+    field: keyof Omit<CreateInstalacionFormValues, 'requiere_instalacion'>,
+    value: string,
+  ) => {
+    setCreateFormValues((current) => ({
+      ...current,
+      instalacion: {
+        ...current.instalacion,
+        [field]: value,
+      },
     }))
   }
 
@@ -756,9 +962,30 @@ export const PedidosPage = () => {
         buildPedidoPayload(createFormValues) as CreatePedidoPayload,
       )
 
-      toast.success('Pedido creado', {
-        description: 'El pedido se registró correctamente.',
-      })
+      if (createFormValues.instalacion.requiere_instalacion) {
+        try {
+          await createInstalacion.mutateAsync({
+            idPedido: createdPedido.id,
+            payload: buildInstalacionPayload(createFormValues),
+          })
+
+          toast.success('Pedido creado con instalación', {
+            description:
+              'El pedido se registró correctamente y la instalación quedó asociada.',
+          })
+        } catch (instalacionError) {
+          toast.warning('Pedido creado sin instalación', {
+            description: getApiErrorMessage(
+              instalacionError,
+              'El pedido se creó correctamente, pero no se pudo asociar la instalación.',
+            ),
+          })
+        }
+      } else {
+        toast.success('Pedido creado', {
+          description: 'El pedido se registró correctamente.',
+        })
+      }
 
       setPage(1)
       setIsCreateSheetOpen(false)
@@ -1264,6 +1491,7 @@ export const PedidosPage = () => {
                       value={createFormValues.fecha_entrega}
                       onChange={handleCreateDateChange}
                       disabled={isSavingPedido}
+                      required
                     />
                     {createFormErrors.fecha_entrega && (
                       <p className="text-xs text-destructive">
@@ -1273,6 +1501,156 @@ export const PedidosPage = () => {
                   </div>
                 </div>
               </div>
+
+              {pedidoFormMode === 'create' && (
+                <div className="rounded-2xl border border-border p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        Instalación
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Marca esta opción si el pedido requiere instalación en
+                        sitio.
+                      </p>
+                    </div>
+
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={requiereInstalacion}
+                        onChange={handleToggleRequiereInstalacion}
+                        disabled={isSavingPedido}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      Requiere instalación
+                    </label>
+                  </div>
+
+                  {requiereInstalacion && (
+                    <div className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="id_instalador">Instalador</Label>
+
+                        <select
+                          id="id_instalador"
+                          value={createFormValues.instalacion.id_instalador}
+                          onChange={(event) =>
+                            handleInstalacionFieldChange(
+                              'id_instalador',
+                              event.target.value,
+                            )
+                          }
+                          disabled={isSavingPedido || isInstaladoresLoading}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">Sin asignar por ahora</option>
+                          {instaladores.map((instalador) => (
+                            <option key={instalador.id} value={instalador.id}>
+                              {instalador.nombre}
+                            </option>
+                          ))}
+                        </select>
+
+                        {isInstaladoresLoading && (
+                          <p className="text-xs text-muted-foreground">
+                            Cargando instaladores...
+                          </p>
+                        )}
+
+                        {createFormErrors.instalacion?.id_instalador && (
+                          <p className="text-xs text-destructive">
+                            {createFormErrors.instalacion.id_instalador}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="fecha_programada">
+                            Fecha programada
+                          </Label>
+                          <Input
+                            id="fecha_programada"
+                            type="date"
+                            value={
+                              createFormValues.instalacion.fecha_programada
+                            }
+                            onChange={(event) =>
+                              handleInstalacionFieldChange(
+                                'fecha_programada',
+                                event.target.value,
+                              )
+                            }
+                            disabled={isSavingPedido}
+                          />
+
+                          {createFormErrors.instalacion?.fecha_programada && (
+                            <p className="text-xs text-destructive">
+                              {createFormErrors.instalacion.fecha_programada}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="direccion_instalacion">
+                            Dirección de instalación
+                          </Label>
+                          <Input
+                            id="direccion_instalacion"
+                            value={
+                              createFormValues.instalacion.direccion_instalacion
+                            }
+                            onChange={(event) =>
+                              handleInstalacionFieldChange(
+                                'direccion_instalacion',
+                                event.target.value,
+                              )
+                            }
+                            placeholder="Dirección donde se instalará"
+                            disabled={isSavingPedido}
+                          />
+
+                          {createFormErrors.instalacion
+                            ?.direccion_instalacion && (
+                            <p className="text-xs text-destructive">
+                              {
+                                createFormErrors.instalacion
+                                  .direccion_instalacion
+                              }
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="observaciones_instalacion">
+                          Observaciones
+                        </Label>
+                        <textarea
+                          id="observaciones_instalacion"
+                          value={createFormValues.instalacion.observaciones}
+                          onChange={(event) =>
+                            handleInstalacionFieldChange(
+                              'observaciones',
+                              event.target.value,
+                            )
+                          }
+                          placeholder="Ejemplo: instalar vinil en fachada principal"
+                          disabled={isSavingPedido}
+                          className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                      </div>
+
+                      <div className="rounded-xl border border-brand/20 bg-brand-muted/40 p-3 text-xs text-muted-foreground">
+                        Si seleccionas un instalador, la instalación quedará en
+                        estado asignada. Si la dejas sin instalador, quedará
+                        pendiente para asignarla después.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="rounded-2xl border border-border p-4">
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -1501,6 +1879,7 @@ export const PedidosPage = () => {
                   isSavingPedido ||
                   isClientesLoading ||
                   isPreciosLoading ||
+                  (requiereInstalacion && isInstaladoresLoading) ||
                   precios.length === 0
                 }
               >

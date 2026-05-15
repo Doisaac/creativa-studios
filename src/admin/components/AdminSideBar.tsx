@@ -21,11 +21,14 @@ import {
   DollarSign,
   Sparkles,
   ChevronsUpDown,
+  Wrench,
+  ClipboardCheck,
 } from 'lucide-react'
 import { Logo } from '@/components/custom/CustomLogo'
 import { Badge } from '@/components/ui/badge'
 import { Link, useLocation } from 'react-router'
 import { useAuthStore } from '@/auth/store/authStore'
+import type { UserRole } from '@/auth/types/auth'
 
 interface MenuItem {
   to: string
@@ -33,6 +36,7 @@ interface MenuItem {
   icon: React.ComponentType<{ className?: string }>
   exact?: boolean
   badge?: string
+  roles?: UserRole[]
 }
 
 interface MenuGroup {
@@ -44,26 +48,66 @@ const groups: MenuGroup[] = [
   {
     label: 'Operaciones',
     items: [
-      { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-      { to: '/admin/clientes', label: 'Clientes', icon: Users },
+      {
+        to: '/admin',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        exact: true,
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION', 'INSTALADOR'],
+      },
+      {
+        to: '/admin/clientes',
+        label: 'Clientes',
+        icon: Users,
+        roles: ['ADMIN', 'RECEPCION'],
+      },
       {
         to: '/admin/pedidos',
         label: 'Pedidos',
         icon: ShoppingBag,
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION'],
+      },
+      {
+        to: '/admin/instalaciones',
+        label: 'Instalaciones',
+        icon: Wrench,
+        roles: ['ADMIN', 'RECEPCION'],
+      },
+      {
+        to: '/admin/mis-instalaciones',
+        label: 'Mis instalaciones',
+        icon: ClipboardCheck,
+        roles: ['INSTALADOR'],
       },
     ],
   },
   {
     label: 'Gestión',
     items: [
-      { to: '/admin/inventario', label: 'Inventario', icon: Boxes },
+      {
+        to: '/admin/inventario',
+        label: 'Inventario',
+        icon: Boxes,
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION'],
+      },
       {
         to: '/admin/movimientos',
         label: 'Movimientos de Inventario',
         icon: ClipboardList,
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION'],
       },
-      { to: '/admin/costos', label: 'Costos y precios', icon: DollarSign },
-      { to: '/admin/productos', label: 'Productos', icon: Box },
+      {
+        to: '/admin/costos',
+        label: 'Costos y precios',
+        icon: DollarSign,
+        roles: ['ADMIN', 'RECEPCION'],
+      },
+      {
+        to: '/admin/productos',
+        label: 'Productos',
+        icon: Box,
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION'],
+      },
     ],
   },
 ]
@@ -93,7 +137,11 @@ export const AdminSidebar = () => {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
-        if (isInstalador) return item.to === '/admin/pedidos'
+        if (item.roles && !item.roles.includes(displayRole)) {
+          return false
+        }
+
+        if (isInstalador) return item.to === '/admin/mis-instalaciones'
 
         if (!isProduccion) return true
 
@@ -117,7 +165,7 @@ export const AdminSidebar = () => {
           </div>
         ) : (
           <Link
-            to="/admin"
+            to={isInstalador ? '/admin/mis-instalaciones' : '/admin'}
             className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground"
           >
             <Sparkles className="h-4 w-4" />
@@ -149,7 +197,11 @@ export const AdminSidebar = () => {
                           className="flex items-center gap-2.5"
                         >
                           <item.icon
-                            className={`h-4 w-4 shrink-0 ${active ? 'text-brand' : 'text-muted-foreground group-hover:text-foreground'}`}
+                            className={`h-4 w-4 shrink-0 ${
+                              active
+                                ? 'text-brand'
+                                : 'text-muted-foreground group-hover:text-foreground'
+                            }`}
                           />
                           {!collapsed && (
                             <>
@@ -180,7 +232,7 @@ export const AdminSidebar = () => {
             <div className="grid h-8 w-8 place-items-center rounded-md bg-brand text-brand-foreground text-xs font-semibold">
               {userInitials || 'U'}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold text-sidebar-foreground">
                 {displayName}
               </p>
