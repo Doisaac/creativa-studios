@@ -521,24 +521,26 @@ export const MisInstalacionesPage = () => {
       </main>
 
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle>Detalle de instalación</SheetTitle>
+        <SheetContent className="w-full overflow-y-auto overflow-x-hidden sm:max-w-xl">
+          <SheetHeader className="border-b border-border pb-5">
+            <SheetTitle className="text-xl">Detalle de instalación</SheetTitle>
             <SheetDescription>
               Revisa los datos completos del trabajo asignado.
             </SheetDescription>
           </SheetHeader>
 
           {selectedInstalacion && (
-            <div className="mt-6 space-y-4">
-              <Card className="border-border p-4">
+            <div className="space-y-5 px-5 py-6 sm:px-6">
+              <div className="rounded-xl border border-border bg-gradient-to-br from-card to-muted p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm text-muted-foreground">Instalación</p>
-                    <p className="text-2xl font-bold text-foreground">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Instalación
+                    </p>
+                    <p className="mt-1 text-4xl font-semibold text-foreground">
                       #{selectedInstalacion.id}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Pedido #{selectedInstalacion.id_pedido}
                     </p>
                   </div>
@@ -553,11 +555,11 @@ export const MisInstalacionesPage = () => {
                     {estadoLabel[selectedInstalacion.estado]}
                   </Badge>
                 </div>
-              </Card>
+              </div>
 
-              <Card className="border-border p-4">
-                <p className="text-sm text-muted-foreground">Cliente</p>
-                <p className="mt-1 font-semibold text-foreground">
+              <Card className="gap-1 border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Cliente</p>
+                <p className="text-sm font-semibold text-foreground">
                   {getClienteName(selectedInstalacion)}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -568,7 +570,7 @@ export const MisInstalacionesPage = () => {
                 </p>
               </Card>
 
-              <Card className="border-border p-4">
+              <Card className="gap-4 border-border bg-card p-4">
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-1 h-4 w-4 text-muted-foreground" />
                   <div>
@@ -582,7 +584,7 @@ export const MisInstalacionesPage = () => {
                 </div>
               </Card>
 
-              <Card className="border-border p-4">
+              <Card className="gap-4 border-border bg-card p-4">
                 <p className="font-medium text-foreground">Fechas</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div>
@@ -601,7 +603,7 @@ export const MisInstalacionesPage = () => {
                 </div>
               </Card>
 
-              <Card className="border-border p-4">
+              <Card className="gap-4 border-border bg-card p-4">
                 <p className="font-medium text-foreground">Observaciones</p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {selectedInstalacion.observaciones ||
