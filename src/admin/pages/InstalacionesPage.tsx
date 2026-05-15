@@ -799,86 +799,121 @@ export const InstalacionesPage = () => {
       </Sheet>
 
       <Sheet open={isAsignarOpen} onOpenChange={setIsAsignarOpen}>
-        <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Asignar instalador</SheetTitle>
+        <SheetContent className="w-full overflow-y-auto overflow-x-hidden sm:max-w-md">
+          <SheetHeader className="border-b border-border pb-5">
+            <SheetTitle className="text-xl">Asignar instalador</SheetTitle>
             <SheetDescription>
               Selecciona el instalador responsable de esta instalación.
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleAsignarSubmit} className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="id_instalador">Instalador</Label>
-              <select
-                id="id_instalador"
-                value={asignarFormValues.id_instalador}
-                onChange={(event) =>
-                  setAsignarFormValues({
-                    id_instalador: event.target.value,
-                  })
-                }
-                disabled={isInstaladoresLoading || asignarInstalador.isPending}
-                className={nativeFieldClassName}
-                required
-              >
-                <option value="">Selecciona un instalador</option>
-                {instaladores.map((instalador) => (
-                  <option key={instalador.id} value={instalador.id}>
-                    {instalador.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <form
+            onSubmit={handleAsignarSubmit}
+            className="space-y-5 px-5 py-6 sm:px-6"
+          >
+            <Card className="gap-4 border-border bg-card p-4">
+              <div>
+                <h4 className="text-sm font-semibold">
+                  Responsable de la instalaciÃ³n
+                </h4>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Selecciona quiÃ©n atenderÃ¡ este trabajo.
+                </p>
+              </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAsignarOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={asignarInstalador.isPending}>
-                {asignarInstalador.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Guardar
-              </Button>
+              <div className="space-y-1.5">
+                <Label htmlFor="id_instalador">Instalador</Label>
+                <select
+                  id="id_instalador"
+                  value={asignarFormValues.id_instalador}
+                  onChange={(event) =>
+                    setAsignarFormValues({
+                      id_instalador: event.target.value,
+                    })
+                  }
+                  disabled={isInstaladoresLoading || asignarInstalador.isPending}
+                  className={nativeFieldClassName}
+                  required
+                >
+                  <option value="">Selecciona un instalador</option>
+                  {instaladores.map((instalador) => (
+                    <option key={instalador.id} value={instalador.id}>
+                      {instalador.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </Card>
+
+            <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAsignarOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={asignarInstalador.isPending}
+                >
+                  {asignarInstalador.isPending ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Guardando...
+                    </>
+                  ) : (
+                    'Guardar'
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </SheetContent>
       </Sheet>
 
       <Sheet open={isReprogramarOpen} onOpenChange={setIsReprogramarOpen}>
-        <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader>
+        <SheetContent className="w-full overflow-y-auto overflow-x-hidden sm:max-w-md">
+          <SheetHeader className="border-b border-border pb-5">
             <SheetTitle>Reprogramar instalación</SheetTitle>
             <SheetDescription>
               Actualiza la fecha programada y agrega una observación opcional.
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleReprogramarSubmit} className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fecha_programada">Fecha programada</Label>
-              <Input
-                id="fecha_programada"
-                type="date"
-                value={reprogramarFormValues.fecha_programada}
-                onChange={(event) =>
-                  setReprogramarFormValues((current) => ({
-                    ...current,
-                    fecha_programada: event.target.value,
-                  }))
-                }
-                required
-                disabled={reprogramarInstalacion.isPending}
-              />
-            </div>
+          <form
+            onSubmit={handleReprogramarSubmit}
+            className="space-y-5 px-5 py-6 sm:px-6"
+          >
+            <Card className="gap-4 border-border bg-card p-4">
+              <div>
+                <h4 className="text-sm font-semibold">Nueva programaciÃ³n</h4>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Define la nueva fecha y registra el motivo del cambio si aplica.
+                </p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observaciones">Observaciones</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="fecha_programada">Fecha programada</Label>
+                <Input
+                  id="fecha_programada"
+                  type="date"
+                  value={reprogramarFormValues.fecha_programada}
+                  onChange={(event) =>
+                    setReprogramarFormValues((current) => ({
+                      ...current,
+                      fecha_programada: event.target.value,
+                    }))
+                  }
+                  required
+                  disabled={reprogramarInstalacion.isPending}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="observaciones">Observaciones</Label>
               <textarea
                 id="observaciones"
                 value={reprogramarFormValues.observaciones}
@@ -892,22 +927,33 @@ export const InstalacionesPage = () => {
                 disabled={reprogramarInstalacion.isPending}
                 className={cn(nativeFieldClassName, 'min-h-24')}
               />
-            </div>
+              </div>
+            </Card>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsReprogramarOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={reprogramarInstalacion.isPending}>
-                {reprogramarInstalacion.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Guardar
-              </Button>
+            <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsReprogramarOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={reprogramarInstalacion.isPending}
+                >
+                  {reprogramarInstalacion.isPending ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Guardando...
+                    </>
+                  ) : (
+                    'Guardar'
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </SheetContent>
