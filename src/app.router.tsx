@@ -13,6 +13,8 @@ import { PedidosPage } from './admin/pages/PedidosPage'
 import { ClientesPage } from './admin/pages/ClientesPage'
 import { CostosPage } from './admin/pages/CostosPage'
 import { AuthenticatedRoutes } from './components/routes/ProtectedRoutes'
+import { InstalacionesPage } from './admin/pages/InstalacionesPage'
+import { MisInstalacionesPage } from './admin/pages/MisInstalacionesPage'
 
 export const appRouter = createBrowserRouter([
   {
@@ -58,6 +60,14 @@ export const appRouter = createBrowserRouter([
       {
         path: 'costos',
         element: <CostosPage />,
+      },
+      {
+        path: 'instalaciones',
+        element: <InstalacionesPage />,
+      },
+      {
+        path: 'mis-instalaciones',
+        element: <MisInstalacionesPage />,
       },
     ],
   },
