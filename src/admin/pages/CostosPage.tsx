@@ -610,6 +610,7 @@ export const CostosPage = () => {
                   id="nuevo-precio-margen"
                   type="number"
                   min={0}
+                  step="0.01"
                   value={createFormValues.margen_ganancia}
                   onChange={handleCreateInputChange('margen_ganancia')}
                   aria-invalid={!!createFormErrors.margen_ganancia}
@@ -727,6 +728,7 @@ export const CostosPage = () => {
                       id="precio-margen"
                       type="number"
                       min={0}
+                      step="0.01"
                       value={selectedFormValues.margen_ganancia}
                       onChange={handleInputChange('margen_ganancia')}
                       aria-invalid={!!formErrors.margen_ganancia}
