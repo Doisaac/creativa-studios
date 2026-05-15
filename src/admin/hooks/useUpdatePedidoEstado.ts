@@ -23,8 +23,13 @@ const buildPedidoListItemFromDetail = (pedido: PedidoDetalle) => ({
   cliente_nombre_contacto: pedido.cliente_nombre_contacto,
   id_usuario: pedido.id_usuario,
   usuario_nombre: pedido.usuario_nombre,
-  producto_resumen: pedido.detalles.map((detalle) => detalle.producto_nombre).join(', '),
-  total_items: pedido.detalles.reduce((total, detalle) => total + detalle.cantidad, 0),
+  producto_resumen: pedido.detalles
+    .map((detalle) => detalle.producto_nombre)
+    .join(', '),
+  total_items: pedido.detalles.reduce(
+    (total, detalle) => total + detalle.cantidad,
+    0,
+  ),
   productos: pedido.detalles.map((detalle) => ({
     id_producto: detalle.id_producto,
     producto_nombre: detalle.producto_nombre,
