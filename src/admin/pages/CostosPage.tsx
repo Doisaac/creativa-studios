@@ -26,6 +26,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useCreatePrecio } from '../hooks/useCreatePrecio'
@@ -111,6 +112,8 @@ const validateUpdateForm = (values: UpdatePrecioProductoPayload) => {
 }
 
 export const CostosPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const isRecepcion = user?.rol === 'RECEPCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<PrecioPageSize>(10)
   const [selectedPrecio, setSelectedPrecio] = useState<PrecioItem | null>(null)
@@ -227,6 +230,7 @@ export const CostosPage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
+    if (isRecepcion) return
 
     const validationErrors = validateCreateForm(createFormValues)
 
@@ -262,6 +266,7 @@ export const CostosPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isRecepcion) return
 
     if (!selectedPrecio) return
 
@@ -306,10 +311,14 @@ export const CostosPage = () => {
       <AdminTopBar
         title="Costos y precios"
         breadcrumbs={[{ label: 'Costos y precios' }]}
-        primaryAction={{
-          label: 'Nuevo precio',
-          onClick: () => setIsCreateSheetOpen(true),
-        }}
+        primaryAction={
+          isRecepcion
+            ? undefined
+            : {
+                label: 'Nuevo precio',
+                onClick: () => setIsCreateSheetOpen(true),
+              }
+        }
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -692,7 +701,7 @@ export const CostosPage = () => {
                   <div>
                     <h4 className="text-sm font-semibold">Actualizar margen</h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Esta operacion usa el endpoint por producto.
+                      Actualiza el margen de ganancia para este producto.
                     </p>
                   </div>
 
@@ -705,7 +714,7 @@ export const CostosPage = () => {
                       value={selectedFormValues.margen_ganancia}
                       onChange={handleInputChange('margen_ganancia')}
                       aria-invalid={!!formErrors.margen_ganancia}
-                      disabled={updatePrecioProducto.isPending}
+                      disabled={isRecepcion || updatePrecioProducto.isPending}
                     />
                     {formErrors.margen_ganancia ? (
                       <p className="text-xs text-destructive">
@@ -716,36 +725,38 @@ export const CostosPage = () => {
                 </Card>
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setFormValues(getInitialFormState(selectedPrecio))
-                        setFormErrors({})
-                      }}
-                      disabled={updatePrecioProducto.isPending}
-                    >
-                      <Edit3 className="h-3.5 w-3.5" /> Restablecer
-                    </Button>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      disabled={updatePrecioProducto.isPending}
-                    >
-                      {updatePrecioProducto.isPending ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
-                          Guardando...
-                        </>
-                      ) : (
-                        <>
-                          <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {isRecepcion ? null : (
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setFormValues(getInitialFormState(selectedPrecio))
+                          setFormErrors({})
+                        }}
+                        disabled={updatePrecioProducto.isPending}
+                      >
+                        <Edit3 className="h-3.5 w-3.5" /> Restablecer
+                      </Button>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={updatePrecioProducto.isPending}
+                      >
+                        {updatePrecioProducto.isPending ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </form>
             </>

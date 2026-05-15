@@ -39,6 +39,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { formatDateTime } from '@/lib/format-date'
 import { AdminTopBar } from '../components/AdminTopBar'
@@ -138,6 +139,8 @@ const getInitialCreateFormState = (): CreateInventarioPayload => ({
 })
 
 export const InventarioPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const isRecepcion = user?.rol === 'RECEPCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<InventoryPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -314,6 +317,7 @@ export const InventarioPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isRecepcion) return
 
     if (!selectedId) return
 
@@ -356,6 +360,7 @@ export const InventarioPage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
+    if (isRecepcion) return
 
     const validationErrors = validateInventarioForm(createFormValues)
 
@@ -391,6 +396,7 @@ export const InventarioPage = () => {
   }
 
   const handleDelete = async () => {
+    if (isRecepcion) return
     if (!selectedId || !selectedItem) return
 
     try {
@@ -421,10 +427,14 @@ export const InventarioPage = () => {
       <AdminTopBar
         title="Inventario"
         breadcrumbs={[{ label: 'Inventario' }]}
-        primaryAction={{
-          label: 'Nuevo producto',
-          onClick: () => setIsCreateSheetOpen(true),
-        }}
+        primaryAction={
+          isRecepcion
+            ? undefined
+            : {
+                label: 'Nuevo producto',
+                onClick: () => setIsCreateSheetOpen(true),
+              }
+        }
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -954,7 +964,9 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('nombre')}
                       aria-invalid={!!formErrors.nombre}
                       disabled={
-                        updateInventario.isPending || deleteInventario.isPending
+                        isRecepcion ||
+                        updateInventario.isPending ||
+                        deleteInventario.isPending
                       }
                     />
                     {formErrors.nombre ? (
@@ -976,7 +988,9 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('stock_minimo')}
                       aria-invalid={!!formErrors.stock_minimo}
                       disabled={
-                        updateInventario.isPending || deleteInventario.isPending
+                        isRecepcion ||
+                        updateInventario.isPending ||
+                        deleteInventario.isPending
                       }
                     />
                     {formErrors.stock_minimo ? (
@@ -994,7 +1008,9 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('unidad_de_medida')}
                       aria-invalid={!!formErrors.unidad_de_medida}
                       disabled={
-                        updateInventario.isPending || deleteInventario.isPending
+                        isRecepcion ||
+                        updateInventario.isPending ||
+                        deleteInventario.isPending
                       }
                     />
                     {formErrors.unidad_de_medida ? (
@@ -1007,55 +1023,60 @@ export const InventarioPage = () => {
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                      disabled={
-                        updateInventario.isPending || deleteInventario.isPending
-                      }
-                      className="sm:self-start"
-                    >
-                      <Trash className="h-3.5 w-3.5" /> Eliminar
-                    </Button>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    {isRecepcion ? null : (
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
-                        onClick={() => {
-                          setFormValues(null)
-                          setFormErrors({})
-                        }}
+                        onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={
                           updateInventario.isPending ||
                           deleteInventario.isPending
                         }
+                        className="sm:self-start"
                       >
-                        <Edit3 className="h-3.5 w-3.5" /> Restablecer
+                        <Trash className="h-3.5 w-3.5" /> Eliminar
                       </Button>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={
-                          updateInventario.isPending ||
-                          deleteInventario.isPending
-                        }
-                      >
-                        {updateInventario.isPending ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    )}
+
+                    {isRecepcion ? null : (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFormValues(null)
+                            setFormErrors({})
+                          }}
+                          disabled={
+                            updateInventario.isPending ||
+                            deleteInventario.isPending
+                          }
+                        >
+                          <Edit3 className="h-3.5 w-3.5" /> Restablecer
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={
+                            updateInventario.isPending ||
+                            deleteInventario.isPending
+                          }
+                        >
+                          {updateInventario.isPending ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </form>
@@ -1065,7 +1086,7 @@ export const InventarioPage = () => {
       </Sheet>
 
       <AlertDialog
-        open={isDeleteDialogOpen}
+        open={isRecepcion ? false : isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <AlertDialogContent>
