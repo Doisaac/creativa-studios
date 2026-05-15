@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { updateInstalacionEstado } from '../services/update-instalacion-estado.service'
 import type { UpdateInstalacionEstadoPayload } from '../types/instalaciones'
 import { instalacionesQueryKeys } from './instalaciones-query-keys'
@@ -38,12 +39,9 @@ export const useUpdateInstalacionEstado = () => {
     },
 
     onError: (error) => {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Error al actualizar estado de instalación'
-
-      toast.error(message)
+      toast.error(
+        getApiErrorMessage(error, 'Error al actualizar estado de instalación'),
+      )
     },
   })
 }
