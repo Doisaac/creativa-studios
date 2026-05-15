@@ -106,7 +106,7 @@ const groups: MenuGroup[] = [
         to: '/admin/productos',
         label: 'Productos',
         icon: Box,
-        roles: ['ADMIN', 'RECEPCION'],
+        roles: ['ADMIN', 'RECEPCION', 'PRODUCCION'],
       },
     ],
   },

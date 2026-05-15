@@ -438,14 +438,14 @@ export const ProductoPage = () => {
           ))}
         </div>
 
-        {isRecepcion ? (
+        {isReadOnlyRole ? (
           <Card className="border-border bg-warning/5 p-4 shadow-soft">
             <p className="text-sm font-medium text-foreground">
               Vista de solo lectura
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Recepción puede consultar productos, pero no crear, editar ni
-              eliminar registros.
+              Recepción y Producción pueden consultar productos, pero no
+              crear, editar ni eliminar registros.
             </p>
           </Card>
         ) : null}
