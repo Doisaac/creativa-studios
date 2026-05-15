@@ -251,7 +251,9 @@ const validateCreatePedidoForm = (
     errors.id_cliente = 'Selecciona un cliente.'
   }
 
-  if (values.fecha_entrega.trim()) {
+  if (!values.fecha_entrega.trim()) {
+    errors.fecha_entrega = 'La fecha de entrega es requerida.'
+  } else {
     const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(values.fecha_entrega.trim())
 
     if (!isValidDate) {
@@ -1474,6 +1476,7 @@ export const PedidosPage = () => {
                       value={createFormValues.fecha_entrega}
                       onChange={handleCreateDateChange}
                       disabled={isSavingPedido}
+                      required
                     />
                     {createFormErrors.fecha_entrega && (
                       <p className="text-xs text-destructive">
