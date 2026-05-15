@@ -13,6 +13,7 @@ import { PedidosPage } from './admin/pages/PedidosPage'
 import { ClientesPage } from './admin/pages/ClientesPage'
 import { CostosPage } from './admin/pages/CostosPage'
 import { AuthenticatedRoutes } from './components/routes/ProtectedRoutes'
+import { RoleRouteGuard } from './components/routes/RoleRouteGuard'
 
 export const appRouter = createBrowserRouter([
   {
@@ -53,11 +54,19 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'movimientos',
-        element: <MovimientosPage />,
+        element: (
+          <RoleRouteGuard blockedRoles={['PRODUCCION']}>
+            <MovimientosPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'costos',
-        element: <CostosPage />,
+        element: (
+          <RoleRouteGuard blockedRoles={['PRODUCCION']}>
+            <CostosPage />
+          </RoleRouteGuard>
+        ),
       },
     ],
   },
