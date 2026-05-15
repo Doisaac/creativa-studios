@@ -100,13 +100,13 @@ const groups: MenuGroup[] = [
         to: '/admin/costos',
         label: 'Costos y precios',
         icon: DollarSign,
-        roles: ['ADMIN'],
+        roles: ['ADMIN', 'RECEPCION'],
       },
       {
         to: '/admin/productos',
         label: 'Productos',
         icon: Box,
-        roles: ['ADMIN'],
+        roles: ['ADMIN', 'RECEPCION'],
       },
     ],
   },
@@ -130,15 +130,6 @@ export const AdminSidebar = () => {
     .join('')
     .slice(0, 2)
 
-  const visibleGroups = groups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter(
-        (item) => !item.roles || item.roles.includes(displayRole),
-      ),
-    }))
-    .filter((group) => group.items.length > 0)
-
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + '/')
 
@@ -146,7 +137,11 @@ export const AdminSidebar = () => {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
-        if (isInstalador) return item.to === '/admin/pedidos'
+        if (item.roles && !item.roles.includes(displayRole)) {
+          return false
+        }
+
+        if (isInstalador) return item.to === '/admin/mis-instalaciones'
 
         if (!isProduccion) return true
 
@@ -170,7 +165,7 @@ export const AdminSidebar = () => {
           </div>
         ) : (
           <Link
-            to="/admin"
+            to={isInstalador ? '/admin/mis-instalaciones' : '/admin'}
             className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground"
           >
             <Sparkles className="h-4 w-4" />

@@ -63,6 +63,12 @@ export const AdminTopBar = ({
         group: 'Operaciones',
       },
       {
+        label: 'Mis instalaciones',
+        to: '/admin/mis-instalaciones',
+        keywords: ['instalaciones', 'asignaciones', 'agenda'],
+        group: 'Operaciones',
+      },
+      {
         label: 'Inventario',
         to: '/admin/inventario',
         keywords: ['stock', 'insumos'],
@@ -89,10 +95,14 @@ export const AdminTopBar = ({
     ]
 
     return pages.filter((page) => {
-      if (isInstalador) return page.to === '/admin/pedidos'
-      if (!isProduccion) return true
+      if (isInstalador) return page.to === '/admin/mis-instalaciones'
+      if (!isProduccion) return page.to !== '/admin/mis-instalaciones'
 
-      return page.to !== '/admin/movimientos' && page.to !== '/admin/costos'
+      return (
+        page.to !== '/admin/mis-instalaciones' &&
+        page.to !== '/admin/movimientos' &&
+        page.to !== '/admin/costos'
+      )
     })
   }, [isInstalador, isProduccion])
 
@@ -166,7 +176,7 @@ export const AdminTopBar = ({
           <SidebarTrigger className="-ml-1.5 h-8 w-8" />
           <div className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
             <Link
-              to="/admin"
+              to={isInstalador ? '/admin/mis-instalaciones' : '/admin'}
               className="flex items-center gap-1 hover:text-foreground"
             >
               <Home className="h-3 w-3" /> Dashboard

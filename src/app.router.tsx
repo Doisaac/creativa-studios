@@ -41,8 +41,8 @@ export const appRouter = createBrowserRouter([
         index: true,
         element: (
           <RoleRouteGuard
-            blockedRoles={['INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            allowedRoles={['ADMIN', 'RECEPCION', 'PRODUCCION']}
+            redirectTo="/admin/mis-instalaciones"
           >
             <DashboardPage />
           </RoleRouteGuard>
@@ -50,14 +50,21 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'pedidos',
-        element: <PedidosPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/mis-instalaciones"
+          >
+            <PedidosPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'clientes',
         element: (
           <RoleRouteGuard
             blockedRoles={['INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            redirectTo="/admin/mis-instalaciones"
           >
             <ClientesPage />
           </RoleRouteGuard>
@@ -68,7 +75,7 @@ export const appRouter = createBrowserRouter([
         element: (
           <RoleRouteGuard
             blockedRoles={['INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            redirectTo="/admin/mis-instalaciones"
           >
             <InventarioPage />
           </RoleRouteGuard>
@@ -79,7 +86,7 @@ export const appRouter = createBrowserRouter([
         element: (
           <RoleRouteGuard
             blockedRoles={['INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            redirectTo="/admin/mis-instalaciones"
           >
             <ProductoPage />
           </RoleRouteGuard>
@@ -90,7 +97,7 @@ export const appRouter = createBrowserRouter([
         element: (
           <RoleRouteGuard
             blockedRoles={['PRODUCCION', 'INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            redirectTo="/admin/mis-instalaciones"
           >
             <MovimientosPage />
           </RoleRouteGuard>
@@ -101,7 +108,7 @@ export const appRouter = createBrowserRouter([
         element: (
           <RoleRouteGuard
             blockedRoles={['PRODUCCION', 'INSTALADOR']}
-            redirectTo="/admin/pedidos"
+            redirectTo="/admin/mis-instalaciones"
           >
             <CostosPage />
           </RoleRouteGuard>
@@ -113,11 +120,25 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'instalaciones',
-        element: <InstalacionesPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/mis-instalaciones"
+          >
+            <InstalacionesPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'mis-instalaciones',
-        element: <MisInstalacionesPage />,
+        element: (
+          <RoleRouteGuard
+            allowedRoles={['INSTALADOR']}
+            redirectTo="/admin"
+          >
+            <MisInstalacionesPage />
+          </RoleRouteGuard>
+        ),
       },
     ],
   },
