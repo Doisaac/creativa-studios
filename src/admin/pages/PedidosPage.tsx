@@ -37,6 +37,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useClientes } from '../hooks/useClientes'
@@ -334,6 +335,10 @@ const PedidoDetailSkeleton = () => (
 )
 
 export const PedidosPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const isProduccion = user?.rol === 'PRODUCCION'
+  const isInstalador = user?.rol === 'INSTALADOR'
+  const canCreatePedido = !isProduccion && !isInstalador
   const [page, setPage] = useState(1)
   const [view, setView] = useState<PedidoView>('tabla')
   const [estadoFilter, setEstadoFilter] = useState<PedidoEstadoFilter>('todos')
@@ -409,7 +414,7 @@ export const PedidosPage = () => {
   const totalPages = pagination?.totalPages ?? 1
   const currentPage = pagination?.page ?? page
   const totalPedidos = pagination?.total ?? 0
-  const clientes = clientesData?.items ?? []
+  const clientes = useMemo(() => clientesData?.items ?? [], [clientesData])
   const precios = preciosData?.items ?? []
   const isSavingPedido = createPedido.isPending || updatePedido.isPending
 
@@ -490,6 +495,7 @@ export const PedidosPage = () => {
   }
 
   const handleOpenCreatePedidoSheet = () => {
+    if (!canCreatePedido) return
     resetCreateForm()
     setPedidoFormMode('create')
     setEditingPedidoId(null)
@@ -498,6 +504,8 @@ export const PedidosPage = () => {
   }
 
   const handleCreateSheetOpenChange = (open: boolean) => {
+    if (open && pedidoFormMode === 'create' && !canCreatePedido) return
+
     setIsCreateSheetOpen(open)
 
     if (open) {
@@ -715,6 +723,7 @@ export const PedidosPage = () => {
     event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
+    if (pedidoFormMode === 'create' && !canCreatePedido) return
 
     const errors = validateCreatePedidoForm(createFormValues)
     setCreateFormErrors(errors)
@@ -797,10 +806,14 @@ export const PedidosPage = () => {
       <AdminTopBar
         title="Pedidos"
         breadcrumbs={[{ label: 'Pedidos' }]}
-        primaryAction={{
-          label: 'Nuevo pedido',
-          onClick: handleOpenCreatePedidoSheet,
-        }}
+        primaryAction={
+          !canCreatePedido
+            ? undefined
+            : {
+                label: 'Nuevo pedido',
+                onClick: handleOpenCreatePedidoSheet,
+              }
+        }
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -970,12 +983,14 @@ export const PedidosPage = () => {
                                   búsqueda.
                                 </p>
                               </div>
-                              <Button
-                                size="sm"
-                                onClick={handleOpenCreatePedidoSheet}
-                              >
-                                <Plus className="h-4 w-4" /> Nuevo pedido
-                              </Button>
+                              {canCreatePedido ? (
+                                <Button
+                                  size="sm"
+                                  onClick={handleOpenCreatePedidoSheet}
+                                >
+                                  <Plus className="h-4 w-4" /> Nuevo pedido
+                                </Button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>

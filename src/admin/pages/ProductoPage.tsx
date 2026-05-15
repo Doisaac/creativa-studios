@@ -37,6 +37,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { formatDateTime } from '@/lib/format-date'
 import { AdminTopBar } from '../components/AdminTopBar'
@@ -146,6 +147,9 @@ const validateProductoForm = (
 }
 
 export const ProductoPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const isRecepcion = user?.rol === 'RECEPCION'
+  const isReadOnlyRole = isRecepcion || user?.rol === 'PRODUCCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<ProductoPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -274,6 +278,7 @@ export const ProductoPage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
+    if (isReadOnlyRole) return
 
     const validationErrors = validateProductoForm(createFormValues)
 
@@ -312,6 +317,7 @@ export const ProductoPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isReadOnlyRole) return
 
     if (!selectedId) return
 
@@ -350,6 +356,7 @@ export const ProductoPage = () => {
   }
 
   const handleDelete = async () => {
+    if (isReadOnlyRole) return
     if (!selectedId || !selectedProducto) return
 
     try {
@@ -380,10 +387,14 @@ export const ProductoPage = () => {
       <AdminTopBar
         title="Productos"
         breadcrumbs={[{ label: 'Productos' }]}
-        primaryAction={{
-          label: 'Nuevo producto',
-          onClick: () => setIsCreateSheetOpen(true),
-        }}
+        primaryAction={
+          isReadOnlyRole
+            ? undefined
+            : {
+                label: 'Nuevo producto',
+                onClick: () => setIsCreateSheetOpen(true),
+              }
+        }
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -879,7 +890,9 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('nombre')}
                       aria-invalid={!!formErrors.nombre}
                       disabled={
-                        updateProducto.isPending || deleteProducto.isPending
+                        isReadOnlyRole ||
+                        updateProducto.isPending ||
+                        deleteProducto.isPending
                       }
                     />
                     {formErrors.nombre ? (
@@ -897,7 +910,9 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('tipo')}
                       aria-invalid={!!formErrors.tipo}
                       disabled={
-                        updateProducto.isPending || deleteProducto.isPending
+                        isReadOnlyRole ||
+                        updateProducto.isPending ||
+                        deleteProducto.isPending
                       }
                       className={nativeFieldClassName}
                     >
@@ -923,7 +938,9 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('costo_base')}
                       aria-invalid={!!formErrors.costo_base}
                       disabled={
-                        updateProducto.isPending || deleteProducto.isPending
+                        isReadOnlyRole ||
+                        updateProducto.isPending ||
+                        deleteProducto.isPending
                       }
                     />
                     {formErrors.costo_base ? (
@@ -941,7 +958,9 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('codigo')}
                       aria-invalid={!!formErrors.codigo}
                       disabled={
-                        updateProducto.isPending || deleteProducto.isPending
+                        isReadOnlyRole ||
+                        updateProducto.isPending ||
+                        deleteProducto.isPending
                       }
                     />
                     {formErrors.codigo ? (
@@ -965,6 +984,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('id_insumo_inventario')}
                       aria-invalid={!!formErrors.id_insumo_inventario}
                       disabled={
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending ||
                         isLoadingInventarioOptions
@@ -996,53 +1016,57 @@ export const ProductoPage = () => {
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                      disabled={
-                        updateProducto.isPending || deleteProducto.isPending
-                      }
-                      className="sm:self-start"
-                    >
-                      <Trash className="h-3.5 w-3.5" /> Eliminar
-                    </Button>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    {isReadOnlyRole ? null : (
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
-                        onClick={() => {
-                          setFormValues(getInitialFormState(selectedProducto))
-                          setFormErrors({})
-                        }}
+                        onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={
                           updateProducto.isPending || deleteProducto.isPending
                         }
+                        className="sm:self-start"
                       >
-                        <Edit3 className="h-3.5 w-3.5" /> Restablecer
+                        <Trash className="h-3.5 w-3.5" /> Eliminar
                       </Button>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={
-                          updateProducto.isPending || deleteProducto.isPending
-                        }
-                      >
-                        {updateProducto.isPending ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    )}
+
+                    {isReadOnlyRole ? null : (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFormValues(getInitialFormState(selectedProducto))
+                            setFormErrors({})
+                          }}
+                          disabled={
+                            updateProducto.isPending || deleteProducto.isPending
+                          }
+                        >
+                          <Edit3 className="h-3.5 w-3.5" /> Restablecer
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={
+                            updateProducto.isPending || deleteProducto.isPending
+                          }
+                        >
+                          {updateProducto.isPending ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Edit3 className="h-3.5 w-3.5" /> Guardar cambios
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </form>
@@ -1052,7 +1076,7 @@ export const ProductoPage = () => {
       </Sheet>
 
       <AlertDialog
-        open={isDeleteDialogOpen}
+        open={isReadOnlyRole ? false : isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <AlertDialogContent>
