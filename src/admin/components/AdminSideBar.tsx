@@ -117,6 +117,8 @@ export const AdminSidebar = () => {
   const collapsed = state === 'collapsed'
   const { pathname } = useLocation()
   const user = useAuthStore((state) => state.user)
+  const isProduccion = user?.rol === 'PRODUCCION'
+  const isInstalador = user?.rol === 'INSTALADOR'
 
   const displayName = user?.nombre ?? 'Usuario'
   const displayRole = user?.rol ?? 'ADMIN'
@@ -139,6 +141,19 @@ export const AdminSidebar = () => {
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + '/')
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (isInstalador) return item.to === '/admin/pedidos'
+
+        if (!isProduccion) return true
+
+        return item.to !== '/admin/movimientos' && item.to !== '/admin/costos'
+      }),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">

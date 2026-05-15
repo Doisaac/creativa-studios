@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 
 import { AuthLayout } from './auth/layouts/AuthLayout'
 import { HomeLayout } from './home/layouts/HomeLayout'
@@ -15,6 +15,7 @@ import { CostosPage } from './admin/pages/CostosPage'
 import { AuthenticatedRoutes } from './components/routes/ProtectedRoutes'
 import { InstalacionesPage } from './admin/pages/InstalacionesPage'
 import { MisInstalacionesPage } from './admin/pages/MisInstalacionesPage'
+import { RoleRouteGuard } from './components/routes/RoleRouteGuard'
 
 export const appRouter = createBrowserRouter([
   {
@@ -36,30 +37,79 @@ export const appRouter = createBrowserRouter([
       </AuthenticatedRoutes>
     ),
     children: [
-      { index: true, element: <DashboardPage /> },
+      {
+        index: true,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <DashboardPage />
+          </RoleRouteGuard>
+        ),
+      },
       {
         path: 'pedidos',
         element: <PedidosPage />,
       },
       {
         path: 'clientes',
-        element: <ClientesPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <ClientesPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'inventario',
-        element: <InventarioPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <InventarioPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'productos',
-        element: <ProductoPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <ProductoPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'movimientos',
-        element: <MovimientosPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['PRODUCCION', 'INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <MovimientosPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'costos',
-        element: <CostosPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['PRODUCCION', 'INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <CostosPage />
+          </RoleRouteGuard>
+        ),
+      },
+      {
+        path: '*',
+        element: <Navigate to="/admin" replace />,
       },
       {
         path: 'instalaciones',
