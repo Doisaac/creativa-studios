@@ -368,7 +368,7 @@ export const CostosPage = () => {
               Vista de solo lectura
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Recepcion puede consultar costos y precios, pero no crear ni
+              Recepción puede consultar costos y precios, pero no crear ni
               editar registros.
             </p>
           </Card>

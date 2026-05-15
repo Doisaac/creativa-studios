@@ -444,7 +444,7 @@ export const ProductoPage = () => {
               Vista de solo lectura
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Recepcion puede consultar productos, pero no crear, editar ni
+              Recepción puede consultar productos, pero no crear, editar ni
               eliminar registros.
             </p>
           </Card>
@@ -888,7 +888,9 @@ export const ProductoPage = () => {
                 <Card className="gap-4 border-border bg-card p-4">
                   <div>
                     <h4 className="text-sm font-semibold">
-                      {isReadOnlyRole ? 'Detalle del producto' : 'Editar producto'}
+                      {isReadOnlyRole
+                        ? 'Detalle del producto'
+                        : 'Editar producto'}
                     </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {isReadOnlyRole
