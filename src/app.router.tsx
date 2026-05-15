@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 
 import { AuthLayout } from './auth/layouts/AuthLayout'
 import { HomeLayout } from './home/layouts/HomeLayout'
@@ -35,27 +35,61 @@ export const appRouter = createBrowserRouter([
       </AuthenticatedRoutes>
     ),
     children: [
-      { index: true, element: <DashboardPage /> },
+      {
+        index: true,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <DashboardPage />
+          </RoleRouteGuard>
+        ),
+      },
       {
         path: 'pedidos',
         element: <PedidosPage />,
       },
       {
         path: 'clientes',
-        element: <ClientesPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <ClientesPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'inventario',
-        element: <InventarioPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <InventarioPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'productos',
-        element: <ProductoPage />,
+        element: (
+          <RoleRouteGuard
+            blockedRoles={['INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
+            <ProductoPage />
+          </RoleRouteGuard>
+        ),
       },
       {
         path: 'movimientos',
         element: (
-          <RoleRouteGuard blockedRoles={['PRODUCCION']}>
+          <RoleRouteGuard
+            blockedRoles={['PRODUCCION', 'INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
             <MovimientosPage />
           </RoleRouteGuard>
         ),
@@ -63,10 +97,17 @@ export const appRouter = createBrowserRouter([
       {
         path: 'costos',
         element: (
-          <RoleRouteGuard blockedRoles={['PRODUCCION']}>
+          <RoleRouteGuard
+            blockedRoles={['PRODUCCION', 'INSTALADOR']}
+            redirectTo="/admin/pedidos"
+          >
             <CostosPage />
           </RoleRouteGuard>
         ),
+      },
+      {
+        path: '*',
+        element: <Navigate to="/admin" replace />,
       },
     ],
   },

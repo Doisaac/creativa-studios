@@ -337,6 +337,8 @@ const PedidoDetailSkeleton = () => (
 export const PedidosPage = () => {
   const user = useAuthStore((state) => state.user)
   const isProduccion = user?.rol === 'PRODUCCION'
+  const isInstalador = user?.rol === 'INSTALADOR'
+  const canCreatePedido = !isProduccion && !isInstalador
   const [page, setPage] = useState(1)
   const [view, setView] = useState<PedidoView>('tabla')
   const [estadoFilter, setEstadoFilter] = useState<PedidoEstadoFilter>('todos')
@@ -493,7 +495,7 @@ export const PedidosPage = () => {
   }
 
   const handleOpenCreatePedidoSheet = () => {
-    if (isProduccion) return
+    if (!canCreatePedido) return
     resetCreateForm()
     setPedidoFormMode('create')
     setEditingPedidoId(null)
@@ -502,6 +504,8 @@ export const PedidosPage = () => {
   }
 
   const handleCreateSheetOpenChange = (open: boolean) => {
+    if (open && pedidoFormMode === 'create' && !canCreatePedido) return
+
     setIsCreateSheetOpen(open)
 
     if (open) {
@@ -719,7 +723,7 @@ export const PedidosPage = () => {
     event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
-    if (isProduccion) return
+    if (pedidoFormMode === 'create' && !canCreatePedido) return
 
     const errors = validateCreatePedidoForm(createFormValues)
     setCreateFormErrors(errors)
@@ -803,7 +807,7 @@ export const PedidosPage = () => {
         title="Pedidos"
         breadcrumbs={[{ label: 'Pedidos' }]}
         primaryAction={
-          isProduccion
+          !canCreatePedido
             ? undefined
             : {
                 label: 'Nuevo pedido',
@@ -979,14 +983,14 @@ export const PedidosPage = () => {
                                   búsqueda.
                                 </p>
                               </div>
-                              {isProduccion ? null : (
+                              {canCreatePedido ? (
                                 <Button
                                   size="sm"
                                   onClick={handleOpenCreatePedidoSheet}
                                 >
                                   <Plus className="h-4 w-4" /> Nuevo pedido
                                 </Button>
-                              )}
+                              ) : null}
                             </div>
                           </td>
                         </tr>

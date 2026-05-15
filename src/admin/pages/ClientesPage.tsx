@@ -207,7 +207,8 @@ const ClienteDetailSkeleton = () => (
 export const ClientesPage = () => {
   const user = useAuthStore((state) => state.user)
   const isReadOnlyRole =
-    user?.rol === 'PRODUCCION' || user?.rol === 'RECEPCION'
+    user?.rol === 'PRODUCCION' || user?.rol === 'INSTALADOR'
+
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<ClientePageSize>(9)
   const [searchTerm, setSearchTerm] = useState('')
@@ -864,9 +865,15 @@ export const ClientesPage = () => {
 
                 <Card className="gap-4 border-border bg-card p-4">
                   <div>
-                    <h4 className="text-sm font-semibold">Editar cliente</h4>
+                    <h4 className="text-sm font-semibold">
+                      {isReadOnlyRole
+                        ? 'Detalle del cliente'
+                        : 'Editar cliente'}
+                    </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Puedes actualizar la información comercial y de contacto.
+                      {isReadOnlyRole
+                        ? 'La información del cliente está disponible solo para consulta.'
+                        : 'Puedes actualizar la información comercial y de contacto.'}
                     </p>
                   </div>
 

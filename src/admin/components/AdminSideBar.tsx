@@ -74,6 +74,7 @@ export const AdminSidebar = () => {
   const { pathname } = useLocation()
   const user = useAuthStore((state) => state.user)
   const isProduccion = user?.rol === 'PRODUCCION'
+  const isInstalador = user?.rol === 'INSTALADOR'
 
   const displayName = user?.nombre ?? 'Usuario'
   const displayRole = user?.rol ?? 'ADMIN'
@@ -92,6 +93,8 @@ export const AdminSidebar = () => {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
+        if (isInstalador) return item.to === '/admin/pedidos'
+
         if (!isProduccion) return true
 
         return item.to !== '/admin/movimientos' && item.to !== '/admin/costos'
