@@ -38,6 +38,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useClienteById } from '../hooks/useClienteById'
@@ -204,6 +205,9 @@ const ClienteDetailSkeleton = () => (
 )
 
 export const ClientesPage = () => {
+  const user = useAuthStore((state) => state.user)
+  const isReadOnlyRole =
+    user?.rol === 'PRODUCCION' || user?.rol === 'RECEPCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<ClientePageSize>(9)
   const [searchTerm, setSearchTerm] = useState('')
@@ -301,6 +305,7 @@ export const ClientesPage = () => {
 
   const handleCreateSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isReadOnlyRole) return
 
     const validationErrors = validateClienteForm(createFormValues)
 
@@ -333,6 +338,7 @@ export const ClientesPage = () => {
 
   const handleUpdateSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isReadOnlyRole) return
 
     if (!selectedId || !selectedCliente) return
 
@@ -366,6 +372,7 @@ export const ClientesPage = () => {
   }
 
   const handleDelete = async () => {
+    if (isReadOnlyRole) return
     if (!selectedId || !selectedCliente) return
 
     try {
@@ -394,10 +401,14 @@ export const ClientesPage = () => {
       <AdminTopBar
         title="Clientes"
         breadcrumbs={[{ label: 'Clientes' }]}
-        primaryAction={{
-          label: 'Nuevo cliente',
-          onClick: () => setIsCreateSheetOpen(true),
-        }}
+        primaryAction={
+          isReadOnlyRole
+            ? undefined
+            : {
+                label: 'Nuevo cliente',
+                onClick: () => setIsCreateSheetOpen(true),
+              }
+        }
       />
 
       <div className="space-y-5 p-4 sm:p-6">
@@ -869,7 +880,9 @@ export const ClientesPage = () => {
                       onChange={handleInputChange('nombre_comercial')}
                       placeholder="Opcional"
                       disabled={
-                        updateCliente.isPending || deleteCliente.isPending
+                        isReadOnlyRole ||
+                        updateCliente.isPending ||
+                        deleteCliente.isPending
                       }
                     />
                     {formErrors.nombre_comercial ? (
@@ -888,7 +901,9 @@ export const ClientesPage = () => {
                       value={selectedFormValues.nombre_contacto}
                       onChange={handleInputChange('nombre_contacto')}
                       disabled={
-                        updateCliente.isPending || deleteCliente.isPending
+                        isReadOnlyRole ||
+                        updateCliente.isPending ||
+                        deleteCliente.isPending
                       }
                     />
                     {formErrors.nombre_contacto ? (
@@ -905,7 +920,9 @@ export const ClientesPage = () => {
                       value={selectedFormValues.telefono}
                       onChange={handleInputChange('telefono')}
                       disabled={
-                        updateCliente.isPending || deleteCliente.isPending
+                        isReadOnlyRole ||
+                        updateCliente.isPending ||
+                        deleteCliente.isPending
                       }
                     />
                     {formErrors.telefono ? (
@@ -924,7 +941,9 @@ export const ClientesPage = () => {
                       onChange={handleInputChange('email')}
                       placeholder="Opcional"
                       disabled={
-                        updateCliente.isPending || deleteCliente.isPending
+                        isReadOnlyRole ||
+                        updateCliente.isPending ||
+                        deleteCliente.isPending
                       }
                     />
                     {formErrors.email ? (
@@ -941,7 +960,9 @@ export const ClientesPage = () => {
                       value={selectedFormValues.direccion}
                       onChange={handleInputChange('direccion')}
                       disabled={
-                        updateCliente.isPending || deleteCliente.isPending
+                        isReadOnlyRole ||
+                        updateCliente.isPending ||
+                        deleteCliente.isPending
                       }
                     />
                     {formErrors.direccion ? (
@@ -954,56 +975,60 @@ export const ClientesPage = () => {
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                      disabled={
-                        updateCliente.isPending || deleteCliente.isPending
-                      }
-                    >
-                      <Trash className="h-3.5 w-3.5" />
-                      Eliminar
-                    </Button>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    {isReadOnlyRole ? null : (
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
-                        onClick={() => {
-                          setFormValues(null)
-                          setFormErrors({})
-                        }}
+                        onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={
                           updateCliente.isPending || deleteCliente.isPending
                         }
                       >
-                        <Edit3 className="h-3.5 w-3.5" />
-                        Restablecer
+                        <Trash className="h-3.5 w-3.5" />
+                        Eliminar
                       </Button>
+                    )}
 
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={
-                          updateCliente.isPending || deleteCliente.isPending
-                        }
-                      >
-                        {updateCliente.isPending ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" />
-                            Guardar cambios
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    {isReadOnlyRole ? null : (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFormValues(null)
+                            setFormErrors({})
+                          }}
+                          disabled={
+                            updateCliente.isPending || deleteCliente.isPending
+                          }
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          Restablecer
+                        </Button>
+
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={
+                            updateCliente.isPending || deleteCliente.isPending
+                          }
+                        >
+                          {updateCliente.isPending ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Edit3 className="h-3.5 w-3.5" />
+                              Guardar cambios
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </form>
@@ -1013,7 +1038,7 @@ export const ClientesPage = () => {
       </Sheet>
 
       <AlertDialog
-        open={isDeleteDialogOpen}
+        open={isReadOnlyRole ? false : isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <AlertDialogContent>

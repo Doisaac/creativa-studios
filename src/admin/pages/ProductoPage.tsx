@@ -149,6 +149,7 @@ const validateProductoForm = (
 export const ProductoPage = () => {
   const user = useAuthStore((state) => state.user)
   const isRecepcion = user?.rol === 'RECEPCION'
+  const isReadOnlyRole = isRecepcion || user?.rol === 'PRODUCCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<ProductoPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -277,7 +278,7 @@ export const ProductoPage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
 
     const validationErrors = validateProductoForm(createFormValues)
 
@@ -316,7 +317,7 @@ export const ProductoPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
 
     if (!selectedId) return
 
@@ -355,7 +356,7 @@ export const ProductoPage = () => {
   }
 
   const handleDelete = async () => {
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
     if (!selectedId || !selectedProducto) return
 
     try {
@@ -387,7 +388,7 @@ export const ProductoPage = () => {
         title="Productos"
         breadcrumbs={[{ label: 'Productos' }]}
         primaryAction={
-          isRecepcion
+          isReadOnlyRole
             ? undefined
             : {
                 label: 'Nuevo producto',
@@ -889,7 +890,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('nombre')}
                       aria-invalid={!!formErrors.nombre}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending
                       }
@@ -909,7 +910,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('tipo')}
                       aria-invalid={!!formErrors.tipo}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending
                       }
@@ -937,7 +938,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('costo_base')}
                       aria-invalid={!!formErrors.costo_base}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending
                       }
@@ -957,7 +958,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('codigo')}
                       aria-invalid={!!formErrors.codigo}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending
                       }
@@ -983,7 +984,7 @@ export const ProductoPage = () => {
                       onChange={handleInputChange('id_insumo_inventario')}
                       aria-invalid={!!formErrors.id_insumo_inventario}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateProducto.isPending ||
                         deleteProducto.isPending ||
                         isLoadingInventarioOptions
@@ -1015,7 +1016,7 @@ export const ProductoPage = () => {
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    {isRecepcion ? null : (
+                    {isReadOnlyRole ? null : (
                       <Button
                         type="button"
                         variant="destructive"
@@ -1030,7 +1031,7 @@ export const ProductoPage = () => {
                       </Button>
                     )}
 
-                    {isRecepcion ? null : (
+                    {isReadOnlyRole ? null : (
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <Button
                           type="button"
@@ -1075,7 +1076,7 @@ export const ProductoPage = () => {
       </Sheet>
 
       <AlertDialog
-        open={isRecepcion ? false : isDeleteDialogOpen}
+        open={isReadOnlyRole ? false : isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <AlertDialogContent>

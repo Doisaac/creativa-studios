@@ -73,6 +73,7 @@ export const AdminSidebar = () => {
   const collapsed = state === 'collapsed'
   const { pathname } = useLocation()
   const user = useAuthStore((state) => state.user)
+  const isProduccion = user?.rol === 'PRODUCCION'
 
   const displayName = user?.nombre ?? 'Usuario'
   const displayRole = user?.rol ?? 'ADMIN'
@@ -86,6 +87,17 @@ export const AdminSidebar = () => {
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + '/')
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (!isProduccion) return true
+
+        return item.to !== '/admin/movimientos' && item.to !== '/admin/costos'
+      }),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -111,7 +123,7 @@ export const AdminSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-3">
-        {groups.map((g) => (
+        {visibleGroups.map((g) => (
           <SidebarGroup key={g.label} className="px-1">
             {!collapsed && (
               <SidebarGroupLabel className="px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">

@@ -141,6 +141,7 @@ const getInitialCreateFormState = (): CreateInventarioPayload => ({
 export const InventarioPage = () => {
   const user = useAuthStore((state) => state.user)
   const isRecepcion = user?.rol === 'RECEPCION'
+  const isReadOnlyRole = isRecepcion || user?.rol === 'PRODUCCION'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<InventoryPageSize>(10)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -317,7 +318,7 @@ export const InventarioPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
 
     if (!selectedId) return
 
@@ -360,7 +361,7 @@ export const InventarioPage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault()
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
 
     const validationErrors = validateInventarioForm(createFormValues)
 
@@ -396,7 +397,7 @@ export const InventarioPage = () => {
   }
 
   const handleDelete = async () => {
-    if (isRecepcion) return
+    if (isReadOnlyRole) return
     if (!selectedId || !selectedItem) return
 
     try {
@@ -428,7 +429,7 @@ export const InventarioPage = () => {
         title="Inventario"
         breadcrumbs={[{ label: 'Inventario' }]}
         primaryAction={
-          isRecepcion
+          isReadOnlyRole
             ? undefined
             : {
                 label: 'Nuevo producto',
@@ -964,7 +965,7 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('nombre')}
                       aria-invalid={!!formErrors.nombre}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateInventario.isPending ||
                         deleteInventario.isPending
                       }
@@ -988,7 +989,7 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('stock_minimo')}
                       aria-invalid={!!formErrors.stock_minimo}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateInventario.isPending ||
                         deleteInventario.isPending
                       }
@@ -1008,7 +1009,7 @@ export const InventarioPage = () => {
                       onChange={handleInputChange('unidad_de_medida')}
                       aria-invalid={!!formErrors.unidad_de_medida}
                       disabled={
-                        isRecepcion ||
+                        isReadOnlyRole ||
                         updateInventario.isPending ||
                         deleteInventario.isPending
                       }
@@ -1023,7 +1024,7 @@ export const InventarioPage = () => {
 
                 <div className="sticky bottom-0 -mx-5 flex flex-col gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    {isRecepcion ? null : (
+                    {isReadOnlyRole ? null : (
                       <Button
                         type="button"
                         variant="destructive"
@@ -1039,7 +1040,7 @@ export const InventarioPage = () => {
                       </Button>
                     )}
 
-                    {isRecepcion ? null : (
+                    {isReadOnlyRole ? null : (
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <Button
                           type="button"
@@ -1086,7 +1087,7 @@ export const InventarioPage = () => {
       </Sheet>
 
       <AlertDialog
-        open={isRecepcion ? false : isDeleteDialogOpen}
+        open={isReadOnlyRole ? false : isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <AlertDialogContent>
