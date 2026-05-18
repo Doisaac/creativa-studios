@@ -22,12 +22,12 @@ export const services = [
   {
     icon: Palette,
     title: 'Diseño gráfico',
-    desc: 'Identidad visual, piezas digitales y materiales editoriales con dirección creativa.',
+    desc: 'Creamos piezas visuales, identidades de marca y materiales digitales con enfoque profesional.',
   },
   {
     icon: Megaphone,
     title: 'Material publicitario',
-    desc: 'Vallas, banners, lonas y campañas visuales con alto impacto en calle.',
+    desc: 'Diseño y producción de vallas, banners, lonas y materiales visuales de alto impacto.' ,
   },
   {
     icon: Gift,
@@ -37,7 +37,7 @@ export const services = [
   {
     icon: Sticker,
     title: 'Viniles y rotulación',
-    desc: 'Vehículos, vidrieras, paredes y stickers troquelados con corte de precisión.',
+    desc: 'Rotulación para vehículos, locales, vidrieras, paredes y stickers personalizados.',
   },
   {
     icon: Printer,
@@ -47,7 +47,7 @@ export const services = [
   {
     icon: Sparkles,
     title: 'Branding para negocios',
-    desc: 'Estrategia, naming, logotipo y manual de marca para crecer con coherencia.',
+    desc: 'Desarrollamos logotipos, líneas gráficas y manuales de marca para negocios en crecimiento.',
   },
 ]
 
@@ -55,7 +55,7 @@ export const benefits = [
   {
     icon: Workflow,
     title: 'Producción organizada',
-    desc: 'Cada pedido pasa por un flujo claro: diseño → aprobación → producción → entrega.',
+    desc: 'Cada pedido sigue un proceso claro: diseño → aprobación → producción → entrega.',
   },
   {
     icon: ShieldCheck,
@@ -65,12 +65,12 @@ export const benefits = [
   {
     icon: Boxes,
     title: 'Gestión profesional de materiales',
-    desc: 'Inventario controlado para que nunca se atrase un trabajo por falta de insumos.',
+    desc: 'Gestionamos insumos e inventario para mantener cada producción ordenada y eficiente.',
   },
   {
     icon: Zap,
     title: 'Soluciones personalizadas',
-    desc: 'Cotizaciones a tu medida según volumen, sustrato y tiempos.',
+    desc: 'Cotizaciones a tu medida según volumen, material, tipo de trabajo y tiempos de entrega.',
   },
 ]
 

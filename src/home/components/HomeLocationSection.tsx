@@ -14,7 +14,7 @@ export const HomeLocationSection = () => (
           Ubicación
         </Badge>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-           Visítanos en Av. Independencia Sur, Santa Ana.
+          Visítanos en Av. Independencia Sur, Santa Ana.
         </h2>
         <p className="mt-3 text-muted-foreground">
           Te esperamos para conversar tu próximo proyecto.
@@ -52,11 +52,11 @@ export const HomeLocationSection = () => (
         </Card>
 
         <div id="contacto" className="mt-6 flex gap-3">
-          <Button size="lg" variant="hero" className="flex-1">
-            Solicitar cotización
+          <Button size="lg" variant="hero" className="flex-1" asChild>
+            <a href="mailto:hola@creativastudios.sv">Solicitar cotización</a>
           </Button>
-          <Button size="lg" variant="outline">
-            Llamar
+          <Button size="lg" variant="outline" asChild>
+            <a href="tel:+50370000000">Llamar</a>
           </Button>
         </div>
       </div>

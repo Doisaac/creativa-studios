@@ -15,14 +15,18 @@ export const HomeFooter = () => {
           </p>
           <div className="mt-6 flex items-center gap-3">
             <a
-              href="#"
+              href="https://www.instagram.com/digitalsolutions.esa?igsh=MWJyM2J5Yjh2cHRpNA=="
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Instagram"
               className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition hover:border-brand hover:text-brand"
             >
               <InstagramIcon className="h-4 w-4" />
             </a>
             <a
-              href="#"
+              href="https://www.facebook.com/share/1NUJXb2HVv/"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Facebook"
               className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition hover:border-brand hover:text-brand"
             >
