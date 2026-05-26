@@ -97,7 +97,7 @@ const ProductoDetailSkeleton = () => (
 
 const getInitialCreateFormState = (): CreateProductoPayload => ({
   nombre: '',
-  tipo: 'insumo',
+  tipo: 'producto',
   costo_base: 0,
   codigo: '',
   id_insumo_inventario: 0,
@@ -444,8 +444,8 @@ export const ProductoPage = () => {
               Vista de solo lectura
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Recepción y Producción pueden consultar productos, pero no
-              crear, editar ni eliminar registros.
+              Recepción y Producción pueden consultar productos, pero no crear,
+              editar ni eliminar registros.
             </p>
           </Card>
         ) : null}
@@ -691,7 +691,6 @@ export const ProductoPage = () => {
                   disabled={createProducto.isPending}
                   className={nativeFieldClassName}
                 >
-                  <option value="insumo">insumo</option>
                   <option value="producto">producto</option>
                   <option value="servicio">servicio</option>
                 </select>
