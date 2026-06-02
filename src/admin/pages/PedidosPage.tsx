@@ -1,4 +1,6 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import {
   AlertTriangle,
   Ban,
@@ -8,7 +10,6 @@ import {
   ChevronRight,
   Clock,
   Download,
-  Filter,
   Loader2,
   MoreHorizontal,
   Package,
@@ -39,6 +40,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/auth/store/authStore'
 import { getApiErrorMessage } from '@/lib/get-api-error-message'
+import { formatDateTime } from '@/lib/format-date'
 import { AdminTopBar } from '../components/AdminTopBar'
 import { useClientes } from '../hooks/useClientes'
 import { useCreatePedido } from '../hooks/useCreatePedido'
@@ -453,6 +455,7 @@ export const PedidosPage = () => {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
   const [pedidoFormMode, setPedidoFormMode] = useState<PedidoFormMode>('create')
   const [editingPedidoId, setEditingPedidoId] = useState<number | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   const [isClientePickerOpen, setIsClientePickerOpen] = useState(false)
   const [activeProductoPickerIndex, setActiveProductoPickerIndex] = useState<
@@ -1028,6 +1031,67 @@ export const PedidosPage = () => {
     }
   }
 
+  const handleExportPdf = async () => {
+    if (filteredPedidos.length === 0 || isExporting) {
+      return
+    }
+
+    try {
+      setIsExporting(true)
+
+      const document = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      })
+      const exportedAt = formatDateTime(new Date().toISOString())
+
+      document.setFontSize(16)
+      document.text('Pedidos', 14, 16)
+      document.setFontSize(10)
+      document.text(`Exportado: ${exportedAt}`, 14, 22)
+      document.text(`Registros visibles: ${filteredPedidos.length}`, 14, 27)
+
+      autoTable(document, {
+        startY: 32,
+        head: [['Orden', 'Cliente', 'Producto', 'Estado', 'Entrega', 'Total']],
+        body: filteredPedidos.map((pedido) => [
+          getPedidoCode(pedido.id),
+          pedido.cliente_nombre,
+          pedido.producto_resumen,
+          ESTADO_LABELS[pedido.estado],
+          formatDate(pedido.fecha_entrega),
+          formatCurrency(pedido.total_pedido),
+        ]),
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        margin: { left: 14, right: 14, bottom: 14 },
+      })
+
+      const fileDate = new Date().toISOString().slice(0, 10)
+      document.save(`pedidos-${fileDate}.pdf`)
+    } catch (exportError) {
+      toast.error('No se pudo exportar el PDF', {
+        description: getApiErrorMessage(
+          exportError,
+          'Intenta nuevamente dentro de unos segundos.',
+        ),
+        duration: 4000,
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <>
       <AdminTopBar
@@ -1097,12 +1161,23 @@ export const PedidosPage = () => {
               </button>
             </div>
 
-            <Button variant="outline" size="sm" disabled>
-              <Filter className="h-3.5 w-3.5" /> Filtros
-            </Button>
-
-            <Button variant="outline" size="sm" disabled>
-              <Download className="h-3.5 w-3.5" /> Exportar
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleExportPdf()}
+              disabled={
+                filteredPedidos.length === 0 || isExporting || isLoading
+              }
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Exportando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" /> Exportar
+                </>
+              )}
             </Button>
 
             <Button
